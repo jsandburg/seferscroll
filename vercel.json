@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/sefaria-api/:path*",
+      "destination": "https://www.sefaria.org/api/:path*"
+    }
+  ]
+}
