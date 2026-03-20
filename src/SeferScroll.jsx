@@ -233,11 +233,11 @@ export default function SeferScroll() {
       .catch(() => {});
   }, []);
 
-  // Fetch a single text from the API
+  // Fetch a single text from the API (v3)
   const fetchText = useCallback(async (ref, lang) => {
     const url = `${API}/v3/texts/${encodeURIComponent(ref)}?version=${lang}`;
     const res = await fetch(url);
-    if (!res.ok) throw new Error(`API error ${res.status}`);
+    if (!res.ok) throw new Error(`API error ${res.status} for ${ref}`);
     const data = await res.json();
     let text = "", heText = "";
     for (const v of (data.versions || [])) {
@@ -254,6 +254,40 @@ export default function SeferScroll() {
       sefariaUrl: `https://www.sefaria.org/${encodeURIComponent(ref)}`,
     };
   }, []);
+
+  // Fetch random text — the /texts/random endpoint may redirect or return
+  // v1 format directly, so we handle both cases here
+  const fetchRandom = useCallback(async (lang) => {
+    let url = `${API}/texts/random`;
+    if (selectedBook) url += `?titles=${encodeURIComponent(selectedBook)}`;
+
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`Random API error ${res.status}`);
+    const data = await res.json();
+
+    // The random endpoint returns v1 format: data.text (English), data.he (Hebrew)
+    // It also has data.ref for the reference
+    if (data.ref) {
+      const text = flatText(data.text);
+      const heText = flatText(data.he);
+
+      // If v1 response has text, use it directly (avoid a second fetch)
+      if (text || heText) {
+        return {
+          ref: data.ref,
+          heRef: data.heRef || "",
+          text, heText,
+          categories: data.categories || [],
+          sefariaUrl: `https://www.sefaria.org/${encodeURIComponent(data.ref)}`,
+        };
+      }
+
+      // Otherwise fall back to v3 fetch
+      return await fetchText(data.ref, lang);
+    }
+
+    throw new Error("No ref in random response");
+  }, [selectedBook, fetchText]);
 
   // Load next batch of cards
   const loadMore = useCallback(async () => {
@@ -331,15 +365,14 @@ export default function SeferScroll() {
         // ===== OTHER MODES =====
         for (let i = 0; i < count; i++) {
           try {
+            let card;
             let ref;
             if (mode === "random") {
-              let url = `${API}/texts/random`;
-              if (selectedBook) url += `?titles=${encodeURIComponent(selectedBook)}`;
-              const data = await (await fetch(url)).json();
-              ref = data.ref;
+              card = await fetchRandom(language);
             } else if (mode === "popular") {
               const idx = (popularIdx + newCards.length) % POPULAR_REFS.length;
               ref = POPULAR_REFS[idx];
+              card = await fetchText(ref, language);
             } else if (mode === "inorder") {
               if (orderRef) {
                 ref = orderRef;
@@ -348,17 +381,15 @@ export default function SeferScroll() {
               } else {
                 ref = "Genesis 1";
               }
+              card = await fetchText(ref, language);
             }
 
-            if (!ref) continue;
-            const card = await fetchText(ref, language);
-
-            if (card.text || card.heText) {
+            if (card && (card.text || card.heText)) {
               newCards.push({ ...card, id: Date.now() + Math.random() });
             }
 
             // Advance in-order pointer
-            if (mode === "inorder") {
+            if (mode === "inorder" && ref) {
               const m = ref.match(/^(.+?)[\s:](\d+)(?::(\d+))?$/);
               if (m) {
                 const [, book, ch, vs] = m;
@@ -393,7 +424,7 @@ export default function SeferScroll() {
       setLoading(false);
       busy.current = false;
     }
-  }, [mode, language, selectedBook, popularIdx, orderRef, parashaLoaded, fetchText]);
+  }, [mode, language, selectedBook, popularIdx, orderRef, parashaLoaded, fetchText, fetchRandom]);
 
   // Reset on settings change
   useEffect(() => {
