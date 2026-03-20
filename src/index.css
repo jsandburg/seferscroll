@@ -34,8 +34,9 @@
 }
 
 /* ===== DARK MODE ===== */
+/* System preference (initial default) */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     --bg-primary: #1e1e1e;
     --bg-secondary: #2a2a2a;
     --bg-tertiary: #141414;
@@ -56,6 +57,29 @@
     --shadow-card: 0 1px 3px rgba(0,0,0,0.3);
     --shadow-hover: 0 4px 12px rgba(0,0,0,0.4);
   }
+}
+
+/* Manual toggle override */
+:root[data-theme="dark"] {
+  --bg-primary: #1e1e1e;
+  --bg-secondary: #2a2a2a;
+  --bg-tertiary: #141414;
+  --bg-info: #0c2a4a;
+  --bg-warning: #3a2a0a;
+  --bg-success: #1a2e0a;
+
+  --text-primary: #e8e6e0;
+  --text-secondary: #a8a6a0;
+  --text-tertiary: #6e6e68;
+  --text-info: #85b7eb;
+  --text-warning: #fac775;
+  --text-success: #97c459;
+
+  --border-light: rgba(255, 255, 255, 0.06);
+  --border-medium: rgba(255, 255, 255, 0.12);
+
+  --shadow-card: 0 1px 3px rgba(0,0,0,0.3);
+  --shadow-hover: 0 4px 12px rgba(0,0,0,0.4);
 }
 
 /* ===== BASE ===== */
