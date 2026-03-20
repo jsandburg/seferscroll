@@ -224,8 +224,10 @@ export default function SeferScroll() {
   }, [theme]);
 
   // Fetch a single text from the API (v3)
+  // We don't pass ?version= so the API returns all available versions,
+  // letting us extract both Hebrew and translation for bilingual display.
   const fetchText = useCallback(async (ref, lang) => {
-    const url = `${API}/v3/texts/${encodeURIComponent(ref)}?version=${lang}`;
+    const url = `${API}/v3/texts/${encodeURIComponent(ref)}`;
     const res = await fetch(url);
     if (!res.ok) throw new Error(`API error ${res.status} for ${ref}`);
     const data = await res.json();
@@ -773,7 +775,7 @@ export default function SeferScroll() {
             )}
 
             {/* Dark/Light mode toggle */}
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <div>
               <div style={s.label}>Appearance</div>
               <button
                 onClick={() => setTheme(t => t === "dark" ? "light" : "dark")}
@@ -792,6 +794,14 @@ export default function SeferScroll() {
                 <span style={{ fontSize: 16 }}>{theme === "dark" ? "🌙" : "☀️"}</span>
                 {theme === "dark" ? "Dark" : "Light"}
               </button>
+            </div>
+
+            {/* GitHub link */}
+            <div style={{ textAlign: "center", paddingTop: 4 }}>
+              <a href="https://github.com/jsandburg/seferscroll" target="_blank" rel="noopener noreferrer"
+                style={{ fontSize: 12, color: "var(--text-tertiary)", textDecoration: "none" }}>
+                View source on GitHub
+              </a>
             </div>
           </div>
         )}
@@ -907,7 +917,7 @@ export default function SeferScroll() {
                 {/* Card footer */}
                 <div style={s.footer}>
                   <a href={card.sefariaUrl} target="_blank" rel="noopener noreferrer" style={s.sefariaLink}>
-                    Read on Sefaria ↗
+                    Read with original Hebrew on Sefaria ↗
                   </a>
                   <button
                     onClick={() => {
