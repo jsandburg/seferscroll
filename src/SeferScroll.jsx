@@ -194,6 +194,7 @@ export default function SeferScroll() {
     if (typeof window !== "undefined") return window.innerWidth <= 1024 ? "mobile" : "desktop";
     return "mobile";
   });
+  const [showAbout, setShowAbout] = useState(false);
   const busy = useRef(false);
   const obsRef = useRef(null);
   const sentRef = useRef(null);
@@ -712,6 +713,7 @@ export default function SeferScroll() {
             setSelectedBook("");
             setCards([]);
             setShowSettings(false);
+            setShowAbout(false);
             orderRefCurrent.current = null;
             setParashaLoaded(false);
             setParashaData(null);
@@ -807,16 +809,51 @@ export default function SeferScroll() {
               </div>
             </div>
 
-            {/* GitHub link */}
+            {/* About link */}
             <div style={{ textAlign: "center", paddingTop: 4 }}>
-              <a href="https://github.com/jsandburg/seferscroll" target="_blank" rel="noopener noreferrer"
-                style={{ fontSize: 12, color: "var(--text-tertiary)", textDecoration: "none" }}>
-                View source on GitHub
-              </a>
+              <button
+                onClick={() => { setShowAbout(a => !a); setShowSettings(false); }}
+                style={{
+                  background: "none", border: "none", cursor: "pointer",
+                  fontSize: 12, color: "var(--text-tertiary)", textDecoration: "none",
+                  padding: 0,
+                }}>
+                About SeferScroll
+              </button>
             </div>
           </div>
         )}
       </div>
+
+      {/* ===== ABOUT CARD ===== */}
+      {showAbout && (
+        <div style={{ maxWidth: 620, margin: "14px auto", padding: "0 14px" }}>
+          <div style={{
+            background: "var(--bg-primary)",
+            borderRadius: "var(--radius-lg)",
+            border: "1px solid var(--border-light)",
+            boxShadow: "var(--shadow-card)",
+            padding: "22px 24px",
+            animation: "fadeSlideIn 0.35s ease-out both",
+          }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+              <div style={{ fontSize: 17, fontWeight: 600, color: "var(--text-primary)" }}>About SeferScroll</div>
+              <button onClick={() => setShowAbout(false)} style={{
+                background: "none", border: "none", cursor: "pointer",
+                fontSize: 18, color: "var(--text-tertiary)", padding: "2px 6px",
+              }}>✕</button>
+            </div>
+            <div style={{ fontSize: 15, lineHeight: 1.8, color: "var(--text-primary)" }}>
+              SeferScroll is an infinite-scroll browser for Jewish texts, powered by the{" "}
+              <a href="https://developers.sefaria.org/" target="_blank" rel="noopener noreferrer">Sefaria API</a>.
+              {" "}The Hebrew calendar is courtesy of{" "}
+              <a href="https://www.hebcal.com/" target="_blank" rel="noopener noreferrer">Hebcal</a>.
+              {" "}View the source code and learn more at{" "}
+              <a href="https://github.com/jsandburg/seferscroll" target="_blank" rel="noopener noreferrer">GitHub</a>.
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ===== CARD FEED ===== */}
       <div className={`snap-feed${viewMode === "desktop" ? " view-desktop" : ""}${viewMode === "mobile" ? " view-mobile" : ""}`} style={s.feed}>
