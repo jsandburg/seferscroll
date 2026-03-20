@@ -255,39 +255,52 @@ export default function SeferScroll() {
     };
   }, []);
 
-  // Fetch random text — the /texts/random endpoint may redirect or return
-  // v1 format directly, so we handle both cases here
+  // Generate a random ref from the TOC (or fallback list) and fetch via v3
+  // We avoid Sefaria's /texts/random endpoint because it redirects through
+  // a URL the Vercel proxy can't follow.
+  const RANDOM_FALLBACK_REFS = [
+    "Genesis 1", "Genesis 22", "Genesis 28", "Exodus 3", "Exodus 14", "Exodus 20",
+    "Leviticus 19", "Numbers 6:22-27", "Deuteronomy 6", "Deuteronomy 30",
+    "Joshua 1", "Judges 4", "I Samuel 17", "II Samuel 12", "I Kings 3", "I Kings 18",
+    "Isaiah 1", "Isaiah 6", "Isaiah 40", "Isaiah 53", "Isaiah 55",
+    "Jeremiah 1", "Jeremiah 31", "Ezekiel 37", "Hosea 2", "Amos 5", "Jonah 1",
+    "Micah 6", "Habakkuk 3", "Zechariah 8", "Malachi 3",
+    "Psalms 1", "Psalms 8", "Psalms 19", "Psalms 23", "Psalms 27", "Psalms 34",
+    "Psalms 42", "Psalms 51", "Psalms 90", "Psalms 91", "Psalms 103", "Psalms 104",
+    "Psalms 113", "Psalms 119", "Psalms 121", "Psalms 126", "Psalms 137", "Psalms 139",
+    "Psalms 145", "Psalms 150",
+    "Proverbs 1", "Proverbs 3", "Proverbs 8", "Proverbs 31",
+    "Job 1", "Job 38", "Job 42",
+    "Song of Songs 1", "Song of Songs 8",
+    "Ruth 1", "Lamentations 3", "Ecclesiastes 1", "Ecclesiastes 3", "Ecclesiastes 12",
+    "Esther 1", "Daniel 3", "Daniel 6",
+    "Pirkei Avot 1", "Pirkei Avot 2", "Pirkei Avot 3", "Pirkei Avot 4", "Pirkei Avot 5",
+    "Berakhot 2a", "Berakhot 17a", "Shabbat 31a", "Shabbat 88a",
+    "Yoma 85b", "Taanit 23a", "Megillah 14a", "Sanhedrin 37a",
+    "Bava Metzia 59b", "Bava Batra 12a", "Makkot 24a",
+    "Mishneh Torah, Foundations of the Torah 1", "Mishneh Torah, Repentance 2",
+    "Zohar 1:1a", "Zohar 1:4a",
+  ];
+
   const fetchRandom = useCallback(async (lang) => {
-    let url = `${API}/texts/random`;
-    if (selectedBook) url += `?titles=${encodeURIComponent(selectedBook)}`;
+    let ref;
 
-    const res = await fetch(url);
-    if (!res.ok) throw new Error(`Random API error ${res.status}`);
-    const data = await res.json();
-
-    // The random endpoint returns v1 format: data.text (English), data.he (Hebrew)
-    // It also has data.ref for the reference
-    if (data.ref) {
-      const text = flatText(data.text);
-      const heText = flatText(data.he);
-
-      // If v1 response has text, use it directly (avoid a second fetch)
-      if (text || heText) {
-        return {
-          ref: data.ref,
-          heRef: data.heRef || "",
-          text, heText,
-          categories: data.categories || [],
-          sefariaUrl: `https://www.sefaria.org/${encodeURIComponent(data.ref)}`,
-        };
-      }
-
-      // Otherwise fall back to v3 fetch
-      return await fetchText(data.ref, lang);
+    if (selectedBook) {
+      // If a specific book is selected, use random chapter number
+      const chapter = Math.floor(Math.random() * 30) + 1;
+      ref = `${selectedBook} ${chapter}`;
+    } else if (toc.length > 0) {
+      // Pick a random book from the TOC, then random chapter
+      const book = toc[Math.floor(Math.random() * toc.length)];
+      const chapter = Math.floor(Math.random() * 10) + 1;
+      ref = `${book.title} ${chapter}`;
+    } else {
+      // Fallback to curated list
+      ref = RANDOM_FALLBACK_REFS[Math.floor(Math.random() * RANDOM_FALLBACK_REFS.length)];
     }
 
-    throw new Error("No ref in random response");
-  }, [selectedBook, fetchText]);
+    return await fetchText(ref, lang);
+  }, [selectedBook, toc, fetchText]);
 
   // Load next batch of cards
   const loadMore = useCallback(async () => {
