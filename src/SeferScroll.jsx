@@ -848,7 +848,7 @@ export default function SeferScroll() {
               <a href="https://developers.sefaria.org/" target="_blank" rel="noopener noreferrer">Sefaria API</a>.
               {" "}The Hebrew calendar is courtesy of{" "}
               <a href="https://www.hebcal.com/" target="_blank" rel="noopener noreferrer">Hebcal</a>.
-              {" "}View the source code and learn more at{" "}
+              {" "}Learn more at{" "}
               <a href="https://github.com/jsandburg/seferscroll" target="_blank" rel="noopener noreferrer">GitHub</a>.
             </div>
           </div>
