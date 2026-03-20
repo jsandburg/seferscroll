@@ -29,7 +29,6 @@ The book dropdown includes texts from seven categories, each shown with English 
 
 ## Other Features
 
-- Bilingual display — texts are fetched with all available versions, showing the primary text with a "Show Hebrew original" toggle for the source
 - "Read with original Hebrew on Sefaria" link on every text for full bilingual study
 - Light and dark mode toggle (auto-detects system preference)
 - Color-coded category indicators on each text

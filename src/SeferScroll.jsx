@@ -161,15 +161,6 @@ const s = {
     direction: dir, textAlign: dir === "rtl" ? "right" : "left",
     fontFamily: dir === "rtl" ? "var(--font-hebrew)" : "var(--font-body)",
   }),
-  heToggle: { marginTop: 14 },
-  heSummary: { fontSize: 12, color: "var(--text-tertiary)", cursor: "pointer", userSelect: "none" },
-  heBody: {
-    fontSize: 16, lineHeight: 1.9, color: "var(--text-secondary)",
-    direction: "rtl", textAlign: "right", marginTop: 10,
-    padding: "12px 16px", background: "var(--bg-secondary)",
-    borderRadius: "var(--radius-md)", maxHeight: 220, overflow: "auto",
-    fontFamily: "var(--font-hebrew)",
-  },
   footer: {
     display: "flex", justifyContent: "space-between", alignItems: "center",
     marginTop: 16, paddingTop: 14,
@@ -224,24 +215,21 @@ export default function SeferScroll() {
   }, [theme]);
 
   // Fetch a single text from the API (v3)
-  // We don't pass ?version= so the API returns all available versions,
-  // letting us extract both Hebrew and translation for bilingual display.
   const fetchText = useCallback(async (ref, lang) => {
-    const url = `${API}/v3/texts/${encodeURIComponent(ref)}`;
+    const url = `${API}/v3/texts/${encodeURIComponent(ref)}?version=english`;
     const res = await fetch(url);
     if (!res.ok) throw new Error(`API error ${res.status} for ${ref}`);
     const data = await res.json();
-    let text = "", heText = "";
+    let text = "";
     for (const v of (data.versions || [])) {
       const t = flatText(v.text);
-      if ((v.language === "he" || v.direction === "rtl") && !heText && t) heText = t;
-      else if (!text && t) text = t;
+      if (!text && t) text = t;
     }
-    if (!text && !heText && data.versions?.[0]) text = flatText(data.versions[0].text);
+    if (!text && data.versions?.[0]) text = flatText(data.versions[0].text);
     return {
       ref: data.ref || ref,
       heRef: data.heRef || "",
-      text, heText,
+      text,
       categories: data.categories || [],
       sefariaUrl: `https://www.sefaria.org/${encodeURIComponent(ref)}`,
     };
@@ -553,7 +541,7 @@ export default function SeferScroll() {
               card = await fetchText(ref, language);
             }
 
-            if (card && (card.text || card.heText)) {
+            if (card && card.text) {
               newCards.push({ ...card, id: Date.now() + Math.random() });
             }
 
@@ -815,7 +803,7 @@ export default function SeferScroll() {
 
         {cards.map((card, idx) => {
           const cc = catColor(card.categories);
-          const display = language === "hebrew" && card.heText ? card.heText : (card.text || card.heText || "");
+          const display = card.text || "";
           const dir = ["hebrew", "arabic", "yiddish"].includes(language) ? "rtl" : "ltr";
           const isCalCard = card.isCalendar;
 
@@ -905,14 +893,6 @@ export default function SeferScroll() {
                 <div style={s.textBody(dir)}>
                   {trunc(display || "Text not available in this language.", 900)}
                 </div>
-
-                {/* Hebrew original toggle */}
-                {language !== "hebrew" && card.heText && (
-                  <details style={s.heToggle}>
-                    <summary style={s.heSummary}>▸ Show Hebrew original</summary>
-                    <div style={s.heBody}>{trunc(card.heText, 600)}</div>
-                  </details>
-                )}
 
                 {/* Card footer */}
                 <div style={s.footer}>
