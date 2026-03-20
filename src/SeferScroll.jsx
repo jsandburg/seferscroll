@@ -340,16 +340,61 @@ export default function SeferScroll() {
     "Mishneh Torah, Torah Study 1", "Mishneh Torah, Sabbath 1",
     "Shulchan Arukh, Orach Chayyim 1",
     // Kabbalah / Chasidut
-    "Zohar 1:1a", "Zohar 1:4a", "Zohar 1:11a", "Zohar 1:15a", "Zohar 1:20a",
-    "Zohar 1:31a", "Zohar 1:47a", "Zohar 1:50b", "Zohar 1:72a", "Zohar 1:83a",
-    "Zohar 1:103a", "Zohar 1:120a", "Zohar 1:134a", "Zohar 1:150a",
-    "Zohar 2:2a", "Zohar 2:23a", "Zohar 2:32a", "Zohar 2:42a", "Zohar 2:60a",
-    "Zohar 2:86a", "Zohar 2:99a", "Zohar 2:124a", "Zohar 2:148a", "Zohar 2:176a",
-    "Zohar 3:10a", "Zohar 3:48a", "Zohar 3:73a", "Zohar 3:100a", "Zohar 3:152a",
-    "Tanya, Likutei Amarim 1", "Tanya, Likutei Amarim 2", "Tanya, Likutei Amarim 3",
-    "Tanya, Likutei Amarim 4", "Tanya, Likutei Amarim 5", "Tanya, Likutei Amarim 6",
-    "Tanya, Likutei Amarim 12", "Tanya, Likutei Amarim 18", "Tanya, Likutei Amarim 25",
-    "Tanya, Likutei Amarim 32", "Tanya, Likutei Amarim 36", "Tanya, Likutei Amarim 41",
+    "Zohar, Introduction.1", "Zohar, Introduction.5", "Zohar, Introduction.10",
+    "Zohar, Bereshit.1", "Zohar, Bereshit.3", "Zohar, Bereshit.6",
+    "Zohar, Noach.1", "Zohar, Noach.3",
+    "Zohar, Lech Lecha.1", "Zohar, Lech Lecha.4",
+    "Zohar, Vayera.1", "Zohar, Vayera.3",
+    "Zohar, Chayei Sara.1", "Zohar, Toldot.1",
+    "Zohar, Vayetzei.1", "Zohar, Vayishlach.1",
+    "Zohar, Vayeshev.1", "Zohar, Miketz.1",
+    "Zohar, Vayigash.1", "Zohar, Vayechi.1",
+    "Zohar, Shemot.1", "Zohar, Vaera.1",
+    "Zohar, Bo.1", "Zohar, Beshalach.1",
+    "Zohar, Yitro.1", "Zohar, Mishpatim.1",
+    "Zohar, Terumah.1", "Zohar, Vayakhel.1",
+    "Zohar, Pekudei.1",
+    // Tanya Part I — Likkutei Amarim (all 53 chapters)
+    "Tanya, Part I; Likkutei Amarim.1", "Tanya, Part I; Likkutei Amarim.2", "Tanya, Part I; Likkutei Amarim.3",
+    "Tanya, Part I; Likkutei Amarim.4", "Tanya, Part I; Likkutei Amarim.5", "Tanya, Part I; Likkutei Amarim.6",
+    "Tanya, Part I; Likkutei Amarim.7", "Tanya, Part I; Likkutei Amarim.8", "Tanya, Part I; Likkutei Amarim.9",
+    "Tanya, Part I; Likkutei Amarim.10", "Tanya, Part I; Likkutei Amarim.11", "Tanya, Part I; Likkutei Amarim.12",
+    "Tanya, Part I; Likkutei Amarim.13", "Tanya, Part I; Likkutei Amarim.14", "Tanya, Part I; Likkutei Amarim.15",
+    "Tanya, Part I; Likkutei Amarim.16", "Tanya, Part I; Likkutei Amarim.17", "Tanya, Part I; Likkutei Amarim.18",
+    "Tanya, Part I; Likkutei Amarim.19", "Tanya, Part I; Likkutei Amarim.20", "Tanya, Part I; Likkutei Amarim.21",
+    "Tanya, Part I; Likkutei Amarim.22", "Tanya, Part I; Likkutei Amarim.23", "Tanya, Part I; Likkutei Amarim.24",
+    "Tanya, Part I; Likkutei Amarim.25", "Tanya, Part I; Likkutei Amarim.26", "Tanya, Part I; Likkutei Amarim.27",
+    "Tanya, Part I; Likkutei Amarim.28", "Tanya, Part I; Likkutei Amarim.29", "Tanya, Part I; Likkutei Amarim.30",
+    "Tanya, Part I; Likkutei Amarim.31", "Tanya, Part I; Likkutei Amarim.32", "Tanya, Part I; Likkutei Amarim.33",
+    "Tanya, Part I; Likkutei Amarim.34", "Tanya, Part I; Likkutei Amarim.35", "Tanya, Part I; Likkutei Amarim.36",
+    "Tanya, Part I; Likkutei Amarim.37", "Tanya, Part I; Likkutei Amarim.38", "Tanya, Part I; Likkutei Amarim.39",
+    "Tanya, Part I; Likkutei Amarim.40", "Tanya, Part I; Likkutei Amarim.41", "Tanya, Part I; Likkutei Amarim.42",
+    "Tanya, Part I; Likkutei Amarim.43", "Tanya, Part I; Likkutei Amarim.44", "Tanya, Part I; Likkutei Amarim.45",
+    "Tanya, Part I; Likkutei Amarim.46", "Tanya, Part I; Likkutei Amarim.47", "Tanya, Part I; Likkutei Amarim.48",
+    "Tanya, Part I; Likkutei Amarim.49", "Tanya, Part I; Likkutei Amarim.50", "Tanya, Part I; Likkutei Amarim.51",
+    "Tanya, Part I; Likkutei Amarim.52", "Tanya, Part I; Likkutei Amarim.53",
+    // Tanya Part II — Shaar HaYichud VehaEmunah (12 chapters)
+    "Tanya, Part II; Shaar HaYichud VehaEmunah.1", "Tanya, Part II; Shaar HaYichud VehaEmunah.2",
+    "Tanya, Part II; Shaar HaYichud VehaEmunah.3", "Tanya, Part II; Shaar HaYichud VehaEmunah.4",
+    "Tanya, Part II; Shaar HaYichud VehaEmunah.5", "Tanya, Part II; Shaar HaYichud VehaEmunah.6",
+    "Tanya, Part II; Shaar HaYichud VehaEmunah.7", "Tanya, Part II; Shaar HaYichud VehaEmunah.8",
+    "Tanya, Part II; Shaar HaYichud VehaEmunah.9", "Tanya, Part II; Shaar HaYichud VehaEmunah.10",
+    "Tanya, Part II; Shaar HaYichud VehaEmunah.11", "Tanya, Part II; Shaar HaYichud VehaEmunah.12",
+    // Tanya Part III — Iggeret HaTeshuvah (12 chapters)
+    "Tanya, Part III; Iggeret HaTeshuvah.1", "Tanya, Part III; Iggeret HaTeshuvah.2",
+    "Tanya, Part III; Iggeret HaTeshuvah.3", "Tanya, Part III; Iggeret HaTeshuvah.4",
+    "Tanya, Part III; Iggeret HaTeshuvah.5", "Tanya, Part III; Iggeret HaTeshuvah.6",
+    "Tanya, Part III; Iggeret HaTeshuvah.7", "Tanya, Part III; Iggeret HaTeshuvah.8",
+    "Tanya, Part III; Iggeret HaTeshuvah.9", "Tanya, Part III; Iggeret HaTeshuvah.10",
+    "Tanya, Part III; Iggeret HaTeshuvah.11", "Tanya, Part III; Iggeret HaTeshuvah.12",
+    // Tanya Part IV — Iggeret HaKodesh (selections)
+    "Tanya, Part IV; Iggeret HaKodesh.1", "Tanya, Part IV; Iggeret HaKodesh.2",
+    "Tanya, Part IV; Iggeret HaKodesh.3", "Tanya, Part IV; Iggeret HaKodesh.4",
+    "Tanya, Part IV; Iggeret HaKodesh.5", "Tanya, Part IV; Iggeret HaKodesh.10",
+    "Tanya, Part IV; Iggeret HaKodesh.15", "Tanya, Part IV; Iggeret HaKodesh.20",
+    // Tanya Part V — Kuntres Acharon (selections)
+    "Tanya, Part V; Kuntres Acharon.1", "Tanya, Part V; Kuntres Acharon.2",
+    "Tanya, Part V; Kuntres Acharon.3", "Tanya, Part V; Kuntres Acharon.4",
   ];
 
   const fetchRandom = useCallback(async (lang) => {
@@ -453,8 +498,8 @@ export default function SeferScroll() {
         // Get the right starting ref for a book
         function getStartRef(book) {
           if (DAF_BOOKS.has(book)) return `${book} 2a`;
-          if (book === "Zohar") return "Zohar 1:1a";
-          if (book === "Tanya, Likutei Amarim") return "Tanya, Likutei Amarim 1";
+          if (book === "Zohar") return "Zohar, Introduction.1";
+          if (book.startsWith("Tanya, ")) return `${book}.1`;
           return `${book} 1`;
         }
 
@@ -467,12 +512,13 @@ export default function SeferScroll() {
             if (side === "a") return `${name} ${num}b`;
             return `${name} ${+num + 1}a`;
           }
-          // Zohar: 1:1a → 1:1b → 1:2a → ...
-          const zoharMatch = ref.match(/^(Zohar\s+\d+):(\d+)(a|b)$/);
-          if (zoharMatch) {
-            const [, prefix, num, side] = zoharMatch;
-            if (side === "a") return `${prefix}:${num}b`;
-            return `${prefix}:${+num + 1}a`;
+          // Complex books with dot notation (Zohar, Tanya, etc.)
+          // e.g. "Zohar, Bereshit.1" → ".2", "Tanya, Part I; Likkutei Amarim.5" → ".6"
+          const dotMatch = ref.match(/^(.+?)\.(\d+)(?:\.(\d+))?$/);
+          if (dotMatch && (ref.includes(",") || ref.includes(";"))) {
+            const [, section, num, sub] = dotMatch;
+            if (sub) return `${section}.${num}.${+sub + 1}`;
+            return `${section}.${+num + 1}`;
           }
           // Standard chapters: Book 1 → Book 2, or Book 1:1 → Book 1:2
           const chMatch = ref.match(/^(.+?)[\s:](\d+)(?::(\d+))?$/);
@@ -656,7 +702,11 @@ export default function SeferScroll() {
     ]},
     { cat: "Kabbalah / Chasidut — קבלה / חסידות", books: [
       { en: "Zohar", tr: "Zohar", he: "זוהר" },
-      { en: "Tanya, Likutei Amarim", tr: "Tanya, Likutei Amarim", he: "תניא, ליקוטי אמרים" },
+      { en: "Tanya, Part I; Likkutei Amarim", tr: "Tanya, Likkutei Amarim", he: "תניא, ליקוטי אמרים" },
+      { en: "Tanya, Part II; Shaar HaYichud VehaEmunah", tr: "Tanya, Sha'ar HaYichud", he: "תניא, שער היחוד והאמונה" },
+      { en: "Tanya, Part III; Iggeret HaTeshuvah", tr: "Tanya, Iggeret HaTeshuvah", he: "תניא, אגרת התשובה" },
+      { en: "Tanya, Part IV; Iggeret HaKodesh", tr: "Tanya, Iggeret HaKodesh", he: "תניא, אגרת הקודש" },
+      { en: "Tanya, Part V; Kuntres Acharon", tr: "Tanya, Kuntres Acharon", he: "תניא, קונטרס אחרון" },
     ]},
   ];
 
