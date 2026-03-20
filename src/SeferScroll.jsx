@@ -206,7 +206,7 @@ export default function SeferScroll() {
   const [showSettings, setShowSettings] = useState(false);
   const [selectedBook, setSelectedBook] = useState("");
   const [popularIdx, setPopularIdx] = useState(0);
-  const [orderRef, setOrderRef] = useState(null);
+  const orderRefCurrent = useRef(null);
   const [error, setError] = useState(null);
   const [theme, setTheme] = useState(() => {
     if (typeof window !== "undefined" && window.matchMedia("(prefers-color-scheme: dark)").matches) return "dark";
@@ -483,7 +483,7 @@ export default function SeferScroll() {
           return `${book || "Genesis"} 2`;
         }
 
-        let nextOrderRef = orderRef; // Track locally so it advances within the loop
+        let nextOrderRef = orderRefCurrent.current; // Use ref for immediate reads (no stale state)
         for (let i = 0; i < count; i++) {
           try {
             let card;
@@ -521,7 +521,7 @@ export default function SeferScroll() {
           }
         }
         // Save final position to React state for the next batch
-        if (mode === "inorder") setOrderRef(nextOrderRef);
+        if (mode === "inorder") orderRefCurrent.current = nextOrderRef;
 
         if (mode === "popular") setPopularIdx(p => p + newCards.length);
       }
@@ -540,13 +540,13 @@ export default function SeferScroll() {
       setLoading(false);
       busy.current = false;
     }
-  }, [mode, language, selectedBook, popularIdx, orderRef, parashaLoaded, fetchText, fetchRandom]);
+  }, [mode, language, selectedBook, popularIdx, parashaLoaded, fetchText, fetchRandom]);
 
   // Reset on settings change
   useEffect(() => {
     setCards([]);
     setPopularIdx(0);
-    setOrderRef(null);
+    orderRefCurrent.current = null;
     setError(null);
     setParashaLoaded(false);
     setParashaData(null);
