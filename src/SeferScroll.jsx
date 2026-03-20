@@ -719,7 +719,17 @@ export default function SeferScroll() {
       {/* ===== HEADER ===== */}
       <div style={s.header}>
         <div style={s.headerInner}>
-          <div style={s.logo}>
+          <div style={{ ...s.logo, cursor: "pointer" }} onClick={() => {
+            setMode("random");
+            setSelectedBook("");
+            setCards([]);
+            setShowSettings(false);
+            orderRefCurrent.current = null;
+            setParashaLoaded(false);
+            setParashaData(null);
+            setError(null);
+            window.scrollTo({ top: 0, behavior: "smooth" });
+          }}>
             <span style={{ fontSize: 24 }}>🌀</span>
             <span style={s.logoText}>SeferScroll</span>
           </div>
