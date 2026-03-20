@@ -38,10 +38,10 @@ const LANGUAGES = [
 ];
 
 const MODES = [
-  { id: "random", label: "Random", icon: "📖" },
-  { id: "popular", label: "Popular", icon: "❤️" },
-  { id: "inorder", label: "In order", icon: "📜" },
   { id: "parasha", label: "Parasha", icon: "📅" },
+  { id: "inorder", label: "Ordered", icon: "📜" },
+  { id: "popular", label: "Popular", icon: "❤️" },
+  { id: "random", label: "Random", icon: "📖" },
 ];
 
 const CAT_COLORS = {
@@ -201,37 +201,27 @@ const s = {
 export default function SeferScroll() {
   const [cards, setCards] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [mode, setMode] = useState("random");
+  const [mode, setMode] = useState("parasha");
   const [language, setLanguage] = useState("english");
   const [showSettings, setShowSettings] = useState(false);
-  const [toc, setToc] = useState([]);
   const [selectedBook, setSelectedBook] = useState("");
   const [popularIdx, setPopularIdx] = useState(0);
   const [orderRef, setOrderRef] = useState(null);
   const [error, setError] = useState(null);
+  const [theme, setTheme] = useState(() => {
+    if (typeof window !== "undefined" && window.matchMedia("(prefers-color-scheme: dark)").matches) return "dark";
+    return "light";
+  });
   const [parashaData, setParashaData] = useState(null);
   const [parashaLoaded, setParashaLoaded] = useState(false);
   const busy = useRef(false);
   const obsRef = useRef(null);
   const sentRef = useRef(null);
 
-  // Load table of contents once
+  // Apply theme to document
   useEffect(() => {
-    fetch(`${API}/index`)
-      .then(r => r.json())
-      .then(data => {
-        const books = [];
-        (function walk(items, path) {
-          if (!Array.isArray(items)) return;
-          for (const it of items) {
-            if (it.title) books.push({ title: it.title, he: it.heTitle || "", cats: it.categories || path });
-            if (it.contents) walk(it.contents, [...path, it.category || ""]);
-          }
-        })(data, []);
-        setToc(books);
-      })
-      .catch(() => {});
-  }, []);
+    document.documentElement.setAttribute("data-theme", theme);
+  }, [theme]);
 
   // Fetch a single text from the API (v3)
   const fetchText = useCallback(async (ref, lang) => {
@@ -255,52 +245,114 @@ export default function SeferScroll() {
     };
   }, []);
 
-  // Generate a random ref from the TOC (or fallback list) and fetch via v3
   // We avoid Sefaria's /texts/random endpoint because it redirects through
-  // a URL the Vercel proxy can't follow.
-  const RANDOM_FALLBACK_REFS = [
-    "Genesis 1", "Genesis 22", "Genesis 28", "Exodus 3", "Exodus 14", "Exodus 20",
-    "Leviticus 19", "Numbers 6:22-27", "Deuteronomy 6", "Deuteronomy 30",
-    "Joshua 1", "Judges 4", "I Samuel 17", "II Samuel 12", "I Kings 3", "I Kings 18",
-    "Isaiah 1", "Isaiah 6", "Isaiah 40", "Isaiah 53", "Isaiah 55",
-    "Jeremiah 1", "Jeremiah 31", "Ezekiel 37", "Hosea 2", "Amos 5", "Jonah 1",
-    "Micah 6", "Habakkuk 3", "Zechariah 8", "Malachi 3",
-    "Psalms 1", "Psalms 8", "Psalms 19", "Psalms 23", "Psalms 27", "Psalms 34",
-    "Psalms 42", "Psalms 51", "Psalms 90", "Psalms 91", "Psalms 103", "Psalms 104",
-    "Psalms 113", "Psalms 119", "Psalms 121", "Psalms 126", "Psalms 137", "Psalms 139",
-    "Psalms 145", "Psalms 150",
-    "Proverbs 1", "Proverbs 3", "Proverbs 8", "Proverbs 31",
-    "Job 1", "Job 38", "Job 42",
-    "Song of Songs 1", "Song of Songs 8",
-    "Ruth 1", "Lamentations 3", "Ecclesiastes 1", "Ecclesiastes 3", "Ecclesiastes 12",
-    "Esther 1", "Daniel 3", "Daniel 6",
-    "Pirkei Avot 1", "Pirkei Avot 2", "Pirkei Avot 3", "Pirkei Avot 4", "Pirkei Avot 5",
-    "Berakhot 2a", "Berakhot 17a", "Shabbat 31a", "Shabbat 88a",
-    "Yoma 85b", "Taanit 23a", "Megillah 14a", "Sanhedrin 37a",
-    "Bava Metzia 59b", "Bava Batra 12a", "Makkot 24a",
-    "Mishneh Torah, Foundations of the Torah 1", "Mishneh Torah, Repentance 2",
-    "Zohar 1:1a", "Zohar 1:4a",
+  // a URL the Vercel proxy can't follow. Instead we pick from a large
+  // curated list of refs that are all guaranteed to exist on Sefaria.
+  const RANDOM_REFS = [
+    // Torah
+    "Genesis 1", "Genesis 2", "Genesis 3", "Genesis 6", "Genesis 7", "Genesis 9",
+    "Genesis 11", "Genesis 12", "Genesis 15", "Genesis 17", "Genesis 18", "Genesis 22",
+    "Genesis 24", "Genesis 25", "Genesis 27", "Genesis 28", "Genesis 32", "Genesis 37",
+    "Genesis 39", "Genesis 41", "Genesis 42", "Genesis 45", "Genesis 49", "Genesis 50",
+    "Exodus 1", "Exodus 2", "Exodus 3", "Exodus 4", "Exodus 7", "Exodus 10",
+    "Exodus 12", "Exodus 14", "Exodus 15", "Exodus 16", "Exodus 19", "Exodus 20",
+    "Exodus 25", "Exodus 32", "Exodus 33", "Exodus 34", "Exodus 35", "Exodus 40",
+    "Leviticus 1", "Leviticus 16", "Leviticus 18", "Leviticus 19", "Leviticus 23", "Leviticus 25",
+    "Numbers 6", "Numbers 11", "Numbers 12", "Numbers 13", "Numbers 14", "Numbers 16",
+    "Numbers 20", "Numbers 22", "Numbers 23", "Numbers 24", "Numbers 27",
+    "Deuteronomy 1", "Deuteronomy 4", "Deuteronomy 5", "Deuteronomy 6", "Deuteronomy 7",
+    "Deuteronomy 8", "Deuteronomy 10", "Deuteronomy 11", "Deuteronomy 16", "Deuteronomy 18",
+    "Deuteronomy 26", "Deuteronomy 28", "Deuteronomy 29", "Deuteronomy 30",
+    "Deuteronomy 31", "Deuteronomy 32", "Deuteronomy 33", "Deuteronomy 34",
+    // Nevi'im
+    "Joshua 1", "Joshua 2", "Joshua 3", "Joshua 6", "Joshua 24",
+    "Judges 4", "Judges 5", "Judges 6", "Judges 13", "Judges 14", "Judges 16",
+    "I Samuel 1", "I Samuel 2", "I Samuel 3", "I Samuel 8", "I Samuel 16", "I Samuel 17",
+    "II Samuel 1", "II Samuel 6", "II Samuel 7", "II Samuel 11", "II Samuel 12",
+    "I Kings 1", "I Kings 3", "I Kings 5", "I Kings 8", "I Kings 10", "I Kings 17", "I Kings 18", "I Kings 19",
+    "II Kings 2", "II Kings 4", "II Kings 5", "II Kings 17", "II Kings 22",
+    "Isaiah 1", "Isaiah 2", "Isaiah 5", "Isaiah 6", "Isaiah 9", "Isaiah 11",
+    "Isaiah 25", "Isaiah 35", "Isaiah 40", "Isaiah 42", "Isaiah 43", "Isaiah 49",
+    "Isaiah 52", "Isaiah 53", "Isaiah 55", "Isaiah 58", "Isaiah 60", "Isaiah 61", "Isaiah 66",
+    "Jeremiah 1", "Jeremiah 2", "Jeremiah 7", "Jeremiah 17", "Jeremiah 29", "Jeremiah 31",
+    "Ezekiel 1", "Ezekiel 18", "Ezekiel 34", "Ezekiel 37",
+    "Hosea 2", "Hosea 6", "Hosea 14", "Joel 2", "Joel 3",
+    "Amos 3", "Amos 5", "Amos 9", "Obadiah 1", "Jonah 1", "Jonah 2", "Jonah 3", "Jonah 4",
+    "Micah 4", "Micah 6", "Nahum 1", "Habakkuk 2", "Habakkuk 3",
+    "Zephaniah 3", "Haggai 2", "Zechariah 8", "Zechariah 14", "Malachi 3",
+    // Ketuvim
+    "Psalms 1", "Psalms 2", "Psalms 8", "Psalms 15", "Psalms 16", "Psalms 19",
+    "Psalms 22", "Psalms 23", "Psalms 24", "Psalms 27", "Psalms 29", "Psalms 30",
+    "Psalms 33", "Psalms 34", "Psalms 37", "Psalms 42", "Psalms 46", "Psalms 48",
+    "Psalms 51", "Psalms 63", "Psalms 67", "Psalms 72", "Psalms 84", "Psalms 86",
+    "Psalms 90", "Psalms 91", "Psalms 92", "Psalms 93", "Psalms 95", "Psalms 96",
+    "Psalms 100", "Psalms 103", "Psalms 104", "Psalms 107", "Psalms 111",
+    "Psalms 113", "Psalms 115", "Psalms 116", "Psalms 118", "Psalms 119",
+    "Psalms 121", "Psalms 122", "Psalms 126", "Psalms 130", "Psalms 133",
+    "Psalms 136", "Psalms 137", "Psalms 139", "Psalms 145", "Psalms 146", "Psalms 148", "Psalms 150",
+    "Proverbs 1", "Proverbs 2", "Proverbs 3", "Proverbs 4", "Proverbs 6",
+    "Proverbs 8", "Proverbs 10", "Proverbs 15", "Proverbs 22", "Proverbs 25", "Proverbs 31",
+    "Job 1", "Job 2", "Job 3", "Job 28", "Job 38", "Job 40", "Job 42",
+    "Song of Songs 1", "Song of Songs 2", "Song of Songs 3", "Song of Songs 4",
+    "Song of Songs 5", "Song of Songs 7", "Song of Songs 8",
+    "Ruth 1", "Ruth 2", "Ruth 3", "Ruth 4",
+    "Lamentations 1", "Lamentations 2", "Lamentations 3", "Lamentations 5",
+    "Ecclesiastes 1", "Ecclesiastes 2", "Ecclesiastes 3", "Ecclesiastes 5",
+    "Ecclesiastes 7", "Ecclesiastes 9", "Ecclesiastes 11", "Ecclesiastes 12",
+    "Esther 1", "Esther 2", "Esther 3", "Esther 4", "Esther 7", "Esther 8", "Esther 9",
+    "Daniel 1", "Daniel 2", "Daniel 3", "Daniel 5", "Daniel 6", "Daniel 7", "Daniel 12",
+    "Nehemiah 1", "Nehemiah 8", "Nehemiah 9",
+    "I Chronicles 16", "I Chronicles 29", "II Chronicles 6", "II Chronicles 20",
+    // Mishnah
+    "Pirkei Avot 1", "Pirkei Avot 2", "Pirkei Avot 3", "Pirkei Avot 4",
+    "Pirkei Avot 5", "Pirkei Avot 6",
+    "Mishnah Berakhot 1", "Mishnah Berakhot 9",
+    "Mishnah Shabbat 1", "Mishnah Sukkah 1",
+    "Mishnah Rosh Hashanah 1", "Mishnah Yoma 8",
+    "Mishnah Taanit 1", "Mishnah Megillah 1",
+    "Mishnah Bava Kamma 1", "Mishnah Bava Metzia 1",
+    "Mishnah Sanhedrin 1", "Mishnah Sanhedrin 4", "Mishnah Sanhedrin 10",
+    "Mishnah Makkot 3",
+    // Talmud
+    "Berakhot 2a", "Berakhot 6a", "Berakhot 17a", "Berakhot 26b", "Berakhot 33b", "Berakhot 55a",
+    "Shabbat 21b", "Shabbat 31a", "Shabbat 73a", "Shabbat 88a", "Shabbat 119b",
+    "Pesachim 10a", "Pesachim 50a", "Pesachim 68b",
+    "Yoma 9b", "Yoma 67b", "Yoma 85b", "Yoma 86a",
+    "Sukkah 28a", "Sukkah 49b",
+    "Rosh Hashanah 16a", "Rosh Hashanah 17b",
+    "Taanit 7a", "Taanit 23a", "Taanit 29a",
+    "Megillah 6b", "Megillah 14a",
+    "Chagigah 12a", "Chagigah 15a",
+    "Sotah 14a",
+    "Gittin 55b", "Gittin 56a", "Gittin 56b",
+    "Kiddushin 30b", "Kiddushin 40b",
+    "Bava Kamma 17a", "Bava Kamma 30a",
+    "Bava Metzia 38b", "Bava Metzia 59a", "Bava Metzia 59b", "Bava Metzia 83a",
+    "Bava Batra 12a", "Bava Batra 16b",
+    "Sanhedrin 37a", "Sanhedrin 38b", "Sanhedrin 56a", "Sanhedrin 97a", "Sanhedrin 98a",
+    "Makkot 23b", "Makkot 24a",
+    "Avodah Zarah 2b", "Avodah Zarah 17a", "Avodah Zarah 20b",
+    "Niddah 30b", "Niddah 31a",
+    // Halakhah
+    "Mishneh Torah, Foundations of the Torah 1", "Mishneh Torah, Foundations of the Torah 2",
+    "Mishneh Torah, Human Dispositions 1", "Mishneh Torah, Human Dispositions 2",
+    "Mishneh Torah, Repentance 1", "Mishneh Torah, Repentance 2",
+    "Mishneh Torah, Torah Study 1", "Mishneh Torah, Sabbath 1",
+    "Shulchan Arukh, Orach Chayyim 1",
+    // Kabbalah / Chasidut
+    "Zohar 1:1a", "Zohar 1:4a", "Zohar 2:32a",
+    "Tanya, Likutei Amarim 1", "Tanya, Likutei Amarim 2",
   ];
 
   const fetchRandom = useCallback(async (lang) => {
-    let ref;
-
     if (selectedBook) {
-      // If a specific book is selected, use random chapter number
-      const chapter = Math.floor(Math.random() * 30) + 1;
-      ref = `${selectedBook} ${chapter}`;
-    } else if (toc.length > 0) {
-      // Pick a random book from the TOC, then random chapter
-      const book = toc[Math.floor(Math.random() * toc.length)];
-      const chapter = Math.floor(Math.random() * 10) + 1;
-      ref = `${book.title} ${chapter}`;
-    } else {
-      // Fallback to curated list
-      ref = RANDOM_FALLBACK_REFS[Math.floor(Math.random() * RANDOM_FALLBACK_REFS.length)];
+      // If a specific book is selected, try chapter 1 as a safe default
+      return await fetchText(`${selectedBook} 1`, lang);
     }
-
+    // Pick from curated list — all refs are known to exist
+    const ref = RANDOM_REFS[Math.floor(Math.random() * RANDOM_REFS.length)];
     return await fetchText(ref, lang);
-  }, [selectedBook, toc, fetchText]);
+  }, [selectedBook, fetchText]);
 
   // Load next batch of cards
   const loadMore = useCallback(async () => {
@@ -465,12 +517,36 @@ export default function SeferScroll() {
     return () => obsRef.current?.disconnect();
   }, [loadMore]);
 
-  // Group TOC by category
-  const tocCats = {};
-  toc.forEach(b => {
-    const c = b.cats?.[0] || "Other";
-    (tocCats[c] = tocCats[c] || []).push(b);
-  });
+  // Books available in the dropdown, derived from RANDOM_REFS
+  const BOOK_MENU = [
+    { cat: "Torah", books: ["Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy"] },
+    { cat: "Prophets", books: [
+      "Joshua", "Judges", "I Samuel", "II Samuel", "I Kings", "II Kings",
+      "Isaiah", "Jeremiah", "Ezekiel", "Hosea", "Joel", "Amos", "Obadiah",
+      "Jonah", "Micah", "Nahum", "Habakkuk", "Zephaniah", "Haggai", "Zechariah", "Malachi",
+    ]},
+    { cat: "Writings", books: [
+      "Psalms", "Proverbs", "Job", "Song of Songs", "Ruth", "Lamentations",
+      "Ecclesiastes", "Esther", "Daniel", "Nehemiah", "I Chronicles", "II Chronicles",
+    ]},
+    { cat: "Mishnah", books: [
+      "Pirkei Avot", "Mishnah Berakhot", "Mishnah Shabbat", "Mishnah Sukkah",
+      "Mishnah Rosh Hashanah", "Mishnah Yoma", "Mishnah Taanit", "Mishnah Megillah",
+      "Mishnah Bava Kamma", "Mishnah Bava Metzia", "Mishnah Sanhedrin", "Mishnah Makkot",
+    ]},
+    { cat: "Talmud", books: [
+      "Berakhot", "Shabbat", "Pesachim", "Yoma", "Sukkah", "Rosh Hashanah",
+      "Taanit", "Megillah", "Chagigah", "Sotah", "Gittin", "Kiddushin",
+      "Bava Kamma", "Bava Metzia", "Bava Batra", "Sanhedrin", "Makkot",
+      "Avodah Zarah", "Niddah",
+    ]},
+    { cat: "Halakhah", books: [
+      "Mishneh Torah, Foundations of the Torah", "Mishneh Torah, Human Dispositions",
+      "Mishneh Torah, Repentance", "Mishneh Torah, Torah Study", "Mishneh Torah, Sabbath",
+      "Shulchan Arukh, Orach Chayyim",
+    ]},
+    { cat: "Kabbalah / Chasidut", books: ["Zohar", "Tanya, Likutei Amarim"] },
+  ];
 
   return (
     <div style={s.page}>
@@ -511,27 +587,20 @@ export default function SeferScroll() {
               </select>
             </div>
 
-            {/* Book / TOC — hidden in parasha mode */}
+            {/* Book selector — hidden in parasha mode */}
             {mode !== "parasha" && (
             <div>
               <div style={s.label}>Text / Book</div>
               <select value={selectedBook} onChange={e => setSelectedBook(e.target.value)} style={s.select}>
-                <option value="">All texts (entire library)</option>
-                {Object.entries(tocCats).map(([cat, bks]) => (
-                  <optgroup key={cat} label={cat}>
-                    {bks.slice(0, 80).map(b => (
-                      <option key={b.title} value={b.title}>
-                        {b.title}{b.he ? ` — ${b.he}` : ""}
-                      </option>
+                <option value="">All texts (random from library)</option>
+                {BOOK_MENU.map(group => (
+                  <optgroup key={group.cat} label={group.cat}>
+                    {group.books.map(b => (
+                      <option key={b} value={b}>{b}</option>
                     ))}
                   </optgroup>
                 ))}
               </select>
-              {toc.length === 0 && (
-                <div style={{ fontSize: 12, color: "var(--text-tertiary)", marginTop: 4 }}>
-                  Loading library index…
-                </div>
-              )}
             </div>
             )}
 
@@ -540,6 +609,28 @@ export default function SeferScroll() {
                 Shows this week's Torah portion (Parashat Hashavua), Haftarah, and daily study schedule from Sefaria's Calendars API.
               </div>
             )}
+
+            {/* Dark/Light mode toggle */}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div style={s.label}>Appearance</div>
+              <button
+                onClick={() => setTheme(t => t === "dark" ? "light" : "dark")}
+                style={{
+                  display: "flex", alignItems: "center", gap: 8,
+                  background: "var(--bg-secondary)",
+                  border: "1px solid var(--border-medium)",
+                  borderRadius: "var(--radius-md)",
+                  padding: "7px 14px",
+                  cursor: "pointer",
+                  fontSize: 13,
+                  color: "var(--text-secondary)",
+                  transition: "background 0.15s",
+                }}
+              >
+                <span style={{ fontSize: 16 }}>{theme === "dark" ? "🌙" : "☀️"}</span>
+                {theme === "dark" ? "Dark" : "Light"}
+              </button>
+            </div>
           </div>
         )}
       </div>
