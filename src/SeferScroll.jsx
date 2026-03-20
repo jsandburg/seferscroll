@@ -718,7 +718,7 @@ export default function SeferScroll() {
 
             {mode === "parasha" && (
               <div style={s.infoBox}>
-                Shows this week's Torah portion (Parashat Hashavua), Haftarah, and daily study schedule from Sefaria's Calendars API.
+                Showing this week's Torah portion, Haftarah, and daily study portions.
               </div>
             )}
 
@@ -892,7 +892,7 @@ export default function SeferScroll() {
             color: "var(--text-tertiary)", fontSize: 13,
             borderTop: "1px solid var(--border-light)",
           }}>
-            That's this week's full schedule from Sefaria's calendar. Check back next week for new readings, or switch to another mode to keep scrolling.
+            This is all of the weekly and daily portions. Switch to a different browsing mode to read more texts.
           </div>
         )}
 

@@ -1,22 +1,42 @@
 # 🌀 SeferScroll
 
-A infinite-scroll browser for Jewish texts, powered by the [Sefaria API](https://developers.sefaria.org/).
+An infinite-scroll browser for Jewish texts, powered by the [Sefaria API](https://developers.sefaria.org/).
 
 Inspired by [WikiTok](https://github.com/IsaacGemal/wikitok).
 
 In memory of the lovely Mahla Shaebanyan-Bady (1980–2023), who was neither Jewish nor did she own a cellphone, but appreciated irony and loved to learn online.
 
-## Features
+## Browsing Modes
 
-- Infinite scrolling feed of Jewish texts from the entire Sefaria library
-- Four browse modes: **Random**, **Most Popular**, **In Order**, and **Parasha** (this week's Torah portion and daily study schedule)
-- **Parasha mode** uses the Sefaria Calendars API to show the weekly Torah portion with aliyot, Haftarah, Daf Yomi, and other daily readings
-- **Book selector** populated from Sefaria's Table of Contents (Tanakh, Talmud, Mishnah, Midrash, Halakhah, Kabbalah, and more)
-- **Language selector** with 12 languages (Hebrew, English, Arabic, French, German, Russian, Spanish, Portuguese, Italian, Polish, Finnish, Yiddish)
-- Toggle to show the Hebrew original alongside any translation
-- Color-coded category indicators
-- Share button and direct links to Sefaria
-- Light/dark mode (follows system preference)
+- **Random** — Pulls from a curated collection of ~300 passages spanning Tanakh, Talmud, Mishnah, Halakhah, Kabbalah, and Chasidut. Select a specific book to randomize within it.
+- **Ordered** — Reads through a text sequentially from beginning to end. Supports standard chapter numbering, Talmud daf pagination (2a → 2b → 3a → 3b), and Zohar volume:page format.
+- **Parasha** — Shows this week's Torah portion (Parashat Hashavua) with a description, expandable aliyot links, the Haftarah, and daily study items (Daf Yomi, Daily Mishnah, Daily Rambam, and more) via the Sefaria Calendars API.
+- **Popular** — Cycles through well-known passages: Psalms 23, the Shema, Pirkei Avot, Hillel's golden rule, Ecclesiastes 3, and others.
+
+## Text Selection
+
+The book dropdown includes texts from seven categories, each shown with English name, transliteration, and Hebrew:
+
+- **Torah — תורה** (Genesis through Deuteronomy)
+- **Prophets — Nevi'im — נביאים** (Joshua through Malachi)
+- **Writings — Ketuvim — כתובים** (Psalms through II Chronicles)
+- **Mishnah — משנה** (Pirkei Avot, Berakhot, Sanhedrin, and others)
+- **Talmud — תלמוד** (19 tractates including Berakhot, Shabbat, Sanhedrin)
+- **Halakhah — הלכה** (Mishneh Torah, Shulchan Arukh)
+- **Kabbalah / Chasidut — קבלה / חסידות** (Zohar, Tanya)
+
+## Language Support
+
+12 languages available for text display: Hebrew, English, Arabic, French, German, Russian, Spanish, Portuguese, Italian, Polish, Finnish, and Yiddish. When viewing a translation, you can expand "Show Hebrew original" to see the source text alongside it.
+
+## Other Features
+
+- Light and dark mode toggle (auto-detects system preference)
+- Color-coded category indicators on each text
+- Footnotes and reference markers automatically stripped for clean reading
+- Share button (uses native share on mobile, copies to clipboard on desktop)
+- Direct "Read on Sefaria" links for every text
+- Built-in sample texts as fallback when the API can't be reached
 - Mobile-friendly responsive design
 
 ## Tech Stack
@@ -24,7 +44,7 @@ In memory of the lovely Mahla Shaebanyan-Bady (1980–2023), who was neither Jew
 - React 18
 - Vite
 - Sefaria API (no key required)
-- Vercel (hosting + API proxy)
+- Vercel (hosting + API proxy to handle CORS)
 
 ## Quick Start (Local Development)
 
@@ -42,9 +62,11 @@ npm run dev
 
 4. Open http://localhost:5173 in your browser
 
+The Vite dev server includes a proxy that forwards `/sefaria-api/` requests to `sefaria.org`, so the API works locally without CORS issues.
+
 ## Deploy to Vercel
 
-See the DEPLOY_GUIDE.md file for detailed step-by-step instructions.
+See the DEPLOY_GUIDE.md file for detailed step-by-step instructions. The `vercel.json` file includes a rewrite rule that proxies API requests through your Vercel domain to avoid browser CORS restrictions.
 
 ## Disclaimer
 
