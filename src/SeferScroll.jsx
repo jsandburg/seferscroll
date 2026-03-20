@@ -939,22 +939,53 @@ export default function SeferScroll() {
                 )}
 
                 {/* Card header */}
-                <div style={s.cardHeader}>
-                  <div>
-                    <div style={s.ref}>{card.ref}</div>
-                    {card.heRef && card.heRef !== card.ref && (
-                      <div style={s.heRef}>{card.heRef}</div>
-                    )}
+                {viewMode === "mobile" ? (
+                  <div style={{ marginBottom: 14 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                      <div>
+                        <div style={s.catPill(cc)}>{card.categories?.[0] || "Text"}</div>
+                        <a href={card.sefariaUrl} target="_blank" rel="noopener noreferrer"
+                          style={{ ...s.ref, textDecoration: "none", color: "var(--text-primary)", display: "block", marginTop: 6 }}>
+                          {card.ref}
+                        </a>
+                        {card.heRef && card.heRef !== card.ref && (
+                          <div style={s.heRef}>{card.heRef}</div>
+                        )}
+                      </div>
+                      <button
+                        onClick={() => {
+                          const text = `${card.ref}\n\n${trunc(display, 200)}\n\n${card.sefariaUrl}`;
+                          if (navigator.share) {
+                            navigator.share({ title: card.ref, text, url: card.sefariaUrl });
+                          } else {
+                            navigator.clipboard?.writeText(text);
+                          }
+                        }}
+                        style={s.shareBtn}
+                      >
+                        Share
+                      </button>
+                    </div>
                   </div>
-                  <div style={s.catPill(cc)}>{card.categories?.[0] || "Text"}</div>
-                </div>
+                ) : (
+                  <div style={s.cardHeader}>
+                    <div>
+                      <div style={s.ref}>{card.ref}</div>
+                      {card.heRef && card.heRef !== card.ref && (
+                        <div style={s.heRef}>{card.heRef}</div>
+                      )}
+                    </div>
+                    <div style={s.catPill(cc)}>{card.categories?.[0] || "Text"}</div>
+                  </div>
+                )}
 
                 {/* Text body */}
                 <div className="card-text" style={s.textBody(dir)}>
                   {trunc(display || "Text not available.", 900)}
                 </div>
 
-                {/* Card footer */}
+                {/* Card footer — desktop only */}
+                {viewMode === "desktop" && (
                 <div style={s.footer}>
                   <a href={card.sefariaUrl} target="_blank" rel="noopener noreferrer" style={s.sefariaLink}>
                     Read with original Hebrew on Sefaria ↗
@@ -973,6 +1004,7 @@ export default function SeferScroll() {
                     Share
                   </button>
                 </div>
+                )}
               </div>
             </div>
           );
