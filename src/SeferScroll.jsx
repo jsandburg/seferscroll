@@ -190,6 +190,10 @@ export default function SeferScroll() {
   const [parashaData, setParashaData] = useState(null);
   const [parashaLoaded, setParashaLoaded] = useState(false);
   const [hebrewDate, setHebrewDate] = useState("");
+  const [viewMode, setViewMode] = useState(() => {
+    if (typeof window !== "undefined") return window.innerWidth <= 1024 ? "mobile" : "desktop";
+    return "mobile";
+  });
   const busy = useRef(false);
   const obsRef = useRef(null);
   const sentRef = useRef(null);
@@ -765,6 +769,7 @@ export default function SeferScroll() {
             {/* Dark/Light mode toggle */}
             <div>
               <div style={s.label}>Appearance</div>
+              <div style={{ display: "flex", gap: 8 }}>
               <button
                 onClick={() => setTheme(t => t === "dark" ? "light" : "dark")}
                 style={{
@@ -782,6 +787,24 @@ export default function SeferScroll() {
                 <span style={{ fontSize: 16 }}>{theme === "dark" ? "🌙" : "☀️"}</span>
                 {theme === "dark" ? "Dark" : "Light"}
               </button>
+              <button
+                onClick={() => setViewMode(v => v === "desktop" ? "mobile" : "desktop")}
+                style={{
+                  display: "flex", alignItems: "center", gap: 8,
+                  background: "var(--bg-secondary)",
+                  border: "1px solid var(--border-medium)",
+                  borderRadius: "var(--radius-md)",
+                  padding: "7px 14px",
+                  cursor: "pointer",
+                  fontSize: 13,
+                  color: "var(--text-secondary)",
+                  transition: "background 0.15s",
+                }}
+              >
+                <span style={{ fontSize: 16 }}>{viewMode === "mobile" ? "📱" : "🖥️"}</span>
+                {viewMode === "mobile" ? "Mobile" : "Desktop"}
+              </button>
+              </div>
             </div>
 
             {/* GitHub link */}
@@ -796,7 +819,7 @@ export default function SeferScroll() {
       </div>
 
       {/* ===== CARD FEED ===== */}
-      <div style={s.feed}>
+      <div className={`snap-feed${viewMode === "desktop" ? " view-desktop" : ""}${viewMode === "mobile" ? " view-mobile" : ""}`} style={s.feed}>
         {error && (
           <div style={s.infoBox}>{error}</div>
         )}
@@ -808,7 +831,7 @@ export default function SeferScroll() {
           const isCalCard = card.isCalendar;
 
           return (
-            <div key={card.id} style={s.card((idx % 3) * 0.08)}>
+            <div key={card.id} className="snap-card" style={s.card((idx % 3) * 0.08)}>
               {/* Color strip — thicker for parasha */}
               <div style={{ height: isCalCard && card.isParasha ? 5 : 3, background: isCalCard && card.isParasha ? "#BA7517" : cc, opacity: 0.85 }} />
               <div style={s.cardBody}>
@@ -890,7 +913,7 @@ export default function SeferScroll() {
                 </div>
 
                 {/* Text body */}
-                <div style={s.textBody(dir)}>
+                <div className="card-text" style={s.textBody(dir)}>
                   {trunc(display || "Text not available.", 900)}
                 </div>
 

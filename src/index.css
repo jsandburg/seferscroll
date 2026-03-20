@@ -132,3 +132,69 @@ a {
 a:hover {
   text-decoration: underline;
 }
+
+/* ===== MOBILE SNAP SCROLL ===== */
+@media (max-width: 1024px) {
+  .snap-feed:not(.view-desktop) {
+    scroll-snap-type: y mandatory;
+    overflow-y: scroll;
+    height: calc(100vh - 52px); /* viewport minus header */
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    gap: 0 !important;
+  }
+
+  .snap-feed:not(.view-desktop) .snap-card {
+    scroll-snap-align: start;
+    min-height: calc(100vh - 52px);
+    display: flex;
+    flex-direction: column;
+    border-radius: 0 !important;
+    border-left: none !important;
+    border-right: none !important;
+    margin: 0;
+  }
+
+  .snap-feed:not(.view-desktop) .snap-card > div:last-child {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .snap-feed:not(.view-desktop) .snap-card .card-text {
+    flex: 1;
+    overflow-y: auto;
+  }
+}
+
+/* Force mobile snap view on any screen size */
+.snap-feed.view-mobile {
+  scroll-snap-type: y mandatory;
+  overflow-y: scroll;
+  height: calc(100vh - 52px);
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  gap: 0 !important;
+}
+
+.snap-feed.view-mobile .snap-card {
+  scroll-snap-align: start;
+  min-height: calc(100vh - 52px);
+  display: flex;
+  flex-direction: column;
+  border-radius: 0 !important;
+  border-left: none !important;
+  border-right: none !important;
+  margin: 0;
+}
+
+.snap-feed.view-mobile .snap-card > div:last-child {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.snap-feed.view-mobile .snap-card .card-text {
+  flex: 1;
+  overflow-y: auto;
+}
