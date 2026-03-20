@@ -782,7 +782,7 @@ export default function SeferScroll() {
 
             {mode === "parasha" && (
               <div style={s.infoBox}>
-                Showing this week's Torah portion, Haftarah, and daily study portions.
+                Showing the weekly Torah portion, Haftarah, and daily study items{hebrewDate ? ` for ${hebrewDate}` : ""}.
               </div>
             )}
 
@@ -823,17 +823,6 @@ export default function SeferScroll() {
       <div style={s.feed}>
         {error && (
           <div style={s.infoBox}>{error}</div>
-        )}
-
-        {/* Hebrew date from Hebcal */}
-        {mode === "parasha" && hebrewDate && (
-          <div style={{
-            textAlign: "center", padding: "8px 14px",
-            fontSize: 15, fontWeight: 500,
-            color: "var(--text-secondary)",
-          }}>
-            {hebrewDate}
-          </div>
         )}
 
         {cards.map((card, idx) => {
