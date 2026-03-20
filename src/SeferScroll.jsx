@@ -340,13 +340,27 @@ export default function SeferScroll() {
     "Mishneh Torah, Torah Study 1", "Mishneh Torah, Sabbath 1",
     "Shulchan Arukh, Orach Chayyim 1",
     // Kabbalah / Chasidut
-    "Zohar 1:1a", "Zohar 1:4a", "Zohar 2:32a",
-    "Tanya, Likutei Amarim 1", "Tanya, Likutei Amarim 2",
+    "Zohar 1:1a", "Zohar 1:4a", "Zohar 1:11a", "Zohar 1:15a", "Zohar 1:20a",
+    "Zohar 1:31a", "Zohar 1:47a", "Zohar 1:50b", "Zohar 1:72a", "Zohar 1:83a",
+    "Zohar 1:103a", "Zohar 1:120a", "Zohar 1:134a", "Zohar 1:150a",
+    "Zohar 2:2a", "Zohar 2:23a", "Zohar 2:32a", "Zohar 2:42a", "Zohar 2:60a",
+    "Zohar 2:86a", "Zohar 2:99a", "Zohar 2:124a", "Zohar 2:148a", "Zohar 2:176a",
+    "Zohar 3:10a", "Zohar 3:48a", "Zohar 3:73a", "Zohar 3:100a", "Zohar 3:152a",
+    "Tanya, Likutei Amarim 1", "Tanya, Likutei Amarim 2", "Tanya, Likutei Amarim 3",
+    "Tanya, Likutei Amarim 4", "Tanya, Likutei Amarim 5", "Tanya, Likutei Amarim 6",
+    "Tanya, Likutei Amarim 12", "Tanya, Likutei Amarim 18", "Tanya, Likutei Amarim 25",
+    "Tanya, Likutei Amarim 32", "Tanya, Likutei Amarim 36", "Tanya, Likutei Amarim 41",
   ];
 
   const fetchRandom = useCallback(async (lang) => {
     if (selectedBook) {
-      // If a specific book is selected, try chapter 1 as a safe default
+      // Filter curated refs to just the selected book
+      const bookRefs = RANDOM_REFS.filter(r => r.startsWith(selectedBook));
+      if (bookRefs.length > 0) {
+        const ref = bookRefs[Math.floor(Math.random() * bookRefs.length)];
+        return await fetchText(ref, lang);
+      }
+      // Fallback: try chapter 1 (works for simple books)
       return await fetchText(`${selectedBook} 1`, lang);
     }
     // Pick from curated list — all refs are known to exist
@@ -440,6 +454,7 @@ export default function SeferScroll() {
         function getStartRef(book) {
           if (DAF_BOOKS.has(book)) return `${book} 2a`;
           if (book === "Zohar") return "Zohar 1:1a";
+          if (book === "Tanya, Likutei Amarim") return "Tanya, Likutei Amarim 1";
           return `${book} 1`;
         }
 
