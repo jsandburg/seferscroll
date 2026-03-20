@@ -205,6 +205,7 @@ export default function SeferScroll() {
   });
   const [parashaData, setParashaData] = useState(null);
   const [parashaLoaded, setParashaLoaded] = useState(false);
+  const [hebrewDate, setHebrewDate] = useState("");
   const busy = useRef(false);
   const obsRef = useRef(null);
   const sentRef = useRef(null);
@@ -213,6 +214,19 @@ export default function SeferScroll() {
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
   }, [theme]);
+
+  // Load Hebrew date from Hebcal RSS feed when in Parasha mode
+  useEffect(() => {
+    if (mode !== "parasha") return;
+    fetch("/hebcal/etc/hdate-en.xml")
+      .then(r => r.text())
+      .then(xml => {
+        const doc = new DOMParser().parseFromString(xml, "text/xml");
+        const title = doc.querySelector("item > title")?.textContent || "";
+        setHebrewDate(title.trim());
+      })
+      .catch(() => {});
+  }, [mode]);
 
   // Fetch a single text from the API (v3)
   const fetchText = useCallback(async (ref, lang) => {
@@ -799,6 +813,17 @@ export default function SeferScroll() {
       <div style={s.feed}>
         {error && (
           <div style={s.infoBox}>{error}</div>
+        )}
+
+        {/* Hebrew date from Hebcal */}
+        {mode === "parasha" && hebrewDate && (
+          <div style={{
+            textAlign: "center", padding: "8px 14px",
+            fontSize: 15, fontWeight: 500,
+            color: "var(--text-secondary)",
+          }}>
+            {hebrewDate}
+          </div>
         )}
 
         {cards.map((card, idx) => {
