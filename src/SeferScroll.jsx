@@ -22,21 +22,6 @@ const POPULAR_REFS = [
   "Shabbat 31a:6", "Berakhot 17a:6",
 ];
 
-const LANGUAGES = [
-  { code: "hebrew", label: "עברית (Hebrew)" },
-  { code: "english", label: "English" },
-  { code: "arabic", label: "العربية (Arabic)" },
-  { code: "french", label: "Français (French)" },
-  { code: "german", label: "Deutsch (German)" },
-  { code: "russian", label: "Русский (Russian)" },
-  { code: "spanish", label: "Español (Spanish)" },
-  { code: "portuguese", label: "Português (Portuguese)" },
-  { code: "italian", label: "Italiano (Italian)" },
-  { code: "polish", label: "Polski (Polish)" },
-  { code: "finnish", label: "Suomi (Finnish)" },
-  { code: "yiddish", label: "ייִדיש (Yiddish)" },
-];
-
 const MODES = [
   { id: "random", label: "Random", icon: "📖" },
   { id: "inorder", label: "Ordered", icon: "📜" },
@@ -193,7 +178,6 @@ export default function SeferScroll() {
   const [cards, setCards] = useState([]);
   const [loading, setLoading] = useState(true);
   const [mode, setMode] = useState("random");
-  const [language, setLanguage] = useState("english");
   const [showSettings, setShowSettings] = useState(false);
   const [selectedBook, setSelectedBook] = useState("");
   const [popularIdx, setPopularIdx] = useState(0);
@@ -229,7 +213,7 @@ export default function SeferScroll() {
   }, [mode]);
 
   // Fetch a single text from the API (v3)
-  const fetchText = useCallback(async (ref, lang) => {
+  const fetchText = useCallback(async (ref) => {
     const url = `${API}/v3/texts/${encodeURIComponent(ref)}?version=english`;
     const res = await fetch(url);
     if (!res.ok) throw new Error(`API error ${res.status} for ${ref}`);
@@ -401,20 +385,20 @@ export default function SeferScroll() {
     "Tanya, Part V; Kuntres Acharon.3", "Tanya, Part V; Kuntres Acharon.4",
   ];
 
-  const fetchRandom = useCallback(async (lang) => {
+  const fetchRandom = useCallback(async () => {
     if (selectedBook) {
       // Filter curated refs to just the selected book
       const bookRefs = RANDOM_REFS.filter(r => r.startsWith(selectedBook));
       if (bookRefs.length > 0) {
         const ref = bookRefs[Math.floor(Math.random() * bookRefs.length)];
-        return await fetchText(ref, lang);
+        return await fetchText(ref);
       }
       // Fallback: try chapter 1 (works for simple books)
-      return await fetchText(`${selectedBook} 1`, lang);
+      return await fetchText(`${selectedBook} 1`);
     }
     // Pick from curated list — all refs are known to exist
     const ref = RANDOM_REFS[Math.floor(Math.random() * RANDOM_REFS.length)];
-    return await fetchText(ref, lang);
+    return await fetchText(ref);
   }, [selectedBook, fetchText]);
 
   // Load next batch of cards
@@ -461,7 +445,7 @@ export default function SeferScroll() {
               const isHaftarah = titleEn === "Haftarah";
 
               // Get the text
-              const card = await fetchText(ref, language);
+              const card = await fetchText(ref);
 
               // Build enriched card
               const enriched = {
@@ -539,11 +523,11 @@ export default function SeferScroll() {
             let card;
             let ref;
             if (mode === "random") {
-              card = await fetchRandom(language);
+              card = await fetchRandom();
             } else if (mode === "popular") {
               const idx = (popularIdx + newCards.length) % POPULAR_REFS.length;
               ref = POPULAR_REFS[idx];
-              card = await fetchText(ref, language);
+              card = await fetchText(ref);
             } else if (mode === "inorder") {
               if (nextOrderRef) {
                 ref = nextOrderRef;
@@ -552,7 +536,7 @@ export default function SeferScroll() {
               } else {
                 ref = "Genesis 1";
               }
-              card = await fetchText(ref, language);
+              card = await fetchText(ref);
             }
 
             if (card && card.text) {
@@ -590,7 +574,7 @@ export default function SeferScroll() {
       setLoading(false);
       busy.current = false;
     }
-  }, [mode, language, selectedBook, popularIdx, parashaLoaded, fetchText, fetchRandom]);
+  }, [mode, selectedBook, popularIdx, parashaLoaded, fetchText, fetchRandom]);
 
   // Reset on settings change
   useEffect(() => {
@@ -603,7 +587,7 @@ export default function SeferScroll() {
     busy.current = false;
     const t = setTimeout(loadMore, 80);
     return () => clearTimeout(t);
-  }, [mode, language, selectedBook]);
+  }, [mode, selectedBook]);
 
   // Infinite scroll observer
   useEffect(() => {
@@ -755,14 +739,6 @@ export default function SeferScroll() {
               </div>
             </div>
 
-            {/* Language */}
-            <div>
-              <div style={s.label}>Language</div>
-              <select value={language} onChange={e => setLanguage(e.target.value)} style={s.select}>
-                {LANGUAGES.map(l => <option key={l.code} value={l.code}>{l.label}</option>)}
-              </select>
-            </div>
-
             {/* Book selector — hidden in parasha mode */}
             {mode !== "parasha" && (
             <div>
@@ -828,7 +804,7 @@ export default function SeferScroll() {
         {cards.map((card, idx) => {
           const cc = catColor(card.categories);
           const display = card.text || "";
-          const dir = ["hebrew", "arabic", "yiddish"].includes(language) ? "rtl" : "ltr";
+          const dir = "ltr";
           const isCalCard = card.isCalendar;
 
           return (
@@ -915,7 +891,7 @@ export default function SeferScroll() {
 
                 {/* Text body */}
                 <div style={s.textBody(dir)}>
-                  {trunc(display || "Text not available in this language.", 900)}
+                  {trunc(display || "Text not available.", 900)}
                 </div>
 
                 {/* Card footer */}
