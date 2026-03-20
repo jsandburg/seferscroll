@@ -38,10 +38,10 @@ const LANGUAGES = [
 ];
 
 const MODES = [
-  { id: "parasha", label: "Parasha", icon: "📅" },
-  { id: "inorder", label: "Ordered", icon: "📜" },
-  { id: "popular", label: "Popular", icon: "❤️" },
   { id: "random", label: "Random", icon: "📖" },
+  { id: "inorder", label: "Ordered", icon: "📜" },
+  { id: "parasha", label: "Parasha", icon: "📅" },
+  { id: "popular", label: "Popular", icon: "❤️" },
 ];
 
 const CAT_COLORS = {
@@ -201,7 +201,7 @@ const s = {
 export default function SeferScroll() {
   const [cards, setCards] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [mode, setMode] = useState("parasha");
+  const [mode, setMode] = useState("random");
   const [language, setLanguage] = useState("english");
   const [showSettings, setShowSettings] = useState(false);
   const [selectedBook, setSelectedBook] = useState("");
@@ -428,6 +428,46 @@ export default function SeferScroll() {
         }
       } else {
         // ===== OTHER MODES =====
+        // Books that use daf (page) numbering instead of chapters
+        const DAF_BOOKS = new Set([
+          "Berakhot", "Shabbat", "Pesachim", "Yoma", "Sukkah", "Rosh Hashanah",
+          "Taanit", "Megillah", "Chagigah", "Sotah", "Gittin", "Kiddushin",
+          "Bava Kamma", "Bava Metzia", "Bava Batra", "Sanhedrin", "Makkot",
+          "Avodah Zarah", "Niddah",
+        ]);
+
+        // Get the right starting ref for a book
+        function getStartRef(book) {
+          if (DAF_BOOKS.has(book)) return `${book} 2a`;
+          if (book === "Zohar") return "Zohar 1:1a";
+          return `${book} 1`;
+        }
+
+        // Advance a ref to the next section
+        function advanceRef(ref, book) {
+          // Talmud daf: 2a → 2b → 3a → 3b → ...
+          const dafMatch = ref.match(/^(.+?)\s(\d+)(a|b)$/);
+          if (dafMatch) {
+            const [, name, num, side] = dafMatch;
+            if (side === "a") return `${name} ${num}b`;
+            return `${name} ${+num + 1}a`;
+          }
+          // Zohar: 1:1a → 1:1b → 1:2a → ...
+          const zoharMatch = ref.match(/^(Zohar\s+\d+):(\d+)(a|b)$/);
+          if (zoharMatch) {
+            const [, prefix, num, side] = zoharMatch;
+            if (side === "a") return `${prefix}:${num}b`;
+            return `${prefix}:${+num + 1}a`;
+          }
+          // Standard chapters: Book 1 → Book 2, or Book 1:1 → Book 1:2
+          const chMatch = ref.match(/^(.+?)[\s:](\d+)(?::(\d+))?$/);
+          if (chMatch) {
+            const [, name, ch, vs] = chMatch;
+            return vs ? `${name} ${ch}:${+vs + 1}` : `${name} ${+ch + 1}`;
+          }
+          return `${book || "Genesis"} 2`;
+        }
+
         let nextOrderRef = orderRef; // Track locally so it advances within the loop
         for (let i = 0; i < count; i++) {
           try {
@@ -443,7 +483,7 @@ export default function SeferScroll() {
               if (nextOrderRef) {
                 ref = nextOrderRef;
               } else if (selectedBook) {
-                ref = selectedBook + " 1";
+                ref = getStartRef(selectedBook);
               } else {
                 ref = "Genesis 1";
               }
@@ -456,19 +496,12 @@ export default function SeferScroll() {
 
             // Advance in-order pointer locally for the next iteration
             if (mode === "inorder" && ref) {
-              const m = ref.match(/^(.+?)[\s:](\d+)(?::(\d+))?$/);
-              if (m) {
-                const [, book, ch, vs] = m;
-                nextOrderRef = vs ? `${book} ${ch}:${+vs + 1}` : `${book} ${+ch + 1}`;
-              } else {
-                nextOrderRef = `${selectedBook || "Genesis"} 2`;
-              }
+              nextOrderRef = advanceRef(ref, selectedBook);
             }
           } catch (e) {
             console.warn("Skipping card:", e.message);
-            if (mode === "inorder") {
-              const m = (nextOrderRef || "").match(/^(.+?)\s(\d+)/);
-              if (m) nextOrderRef = `${m[1]} ${+m[2] + 1}`;
+            if (mode === "inorder" && nextOrderRef) {
+              nextOrderRef = advanceRef(nextOrderRef, selectedBook);
             }
           }
         }
@@ -517,35 +550,99 @@ export default function SeferScroll() {
     return () => obsRef.current?.disconnect();
   }, [loadMore]);
 
-  // Books available in the dropdown, derived from RANDOM_REFS
+  // Books available in the dropdown with Hebrew names and transliterations
   const BOOK_MENU = [
-    { cat: "Torah", books: ["Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy"] },
-    { cat: "Prophets", books: [
-      "Joshua", "Judges", "I Samuel", "II Samuel", "I Kings", "II Kings",
-      "Isaiah", "Jeremiah", "Ezekiel", "Hosea", "Joel", "Amos", "Obadiah",
-      "Jonah", "Micah", "Nahum", "Habakkuk", "Zephaniah", "Haggai", "Zechariah", "Malachi",
+    { cat: "Torah — תורה", books: [
+      { en: "Genesis", tr: "Bereshit", he: "בראשית" },
+      { en: "Exodus", tr: "Shemot", he: "שמות" },
+      { en: "Leviticus", tr: "Vayikra", he: "ויקרא" },
+      { en: "Numbers", tr: "Bamidbar", he: "במדבר" },
+      { en: "Deuteronomy", tr: "Devarim", he: "דברים" },
     ]},
-    { cat: "Writings", books: [
-      "Psalms", "Proverbs", "Job", "Song of Songs", "Ruth", "Lamentations",
-      "Ecclesiastes", "Esther", "Daniel", "Nehemiah", "I Chronicles", "II Chronicles",
+    { cat: "Prophets — Nevi'im — נביאים", books: [
+      { en: "Joshua", tr: "Yehoshua", he: "יהושע" },
+      { en: "Judges", tr: "Shoftim", he: "שופטים" },
+      { en: "I Samuel", tr: "Shmuel Alef", he: "שמואל א" },
+      { en: "II Samuel", tr: "Shmuel Bet", he: "שמואל ב" },
+      { en: "I Kings", tr: "Melakhim Alef", he: "מלכים א" },
+      { en: "II Kings", tr: "Melakhim Bet", he: "מלכים ב" },
+      { en: "Isaiah", tr: "Yeshayahu", he: "ישעיהו" },
+      { en: "Jeremiah", tr: "Yirmiyahu", he: "ירמיהו" },
+      { en: "Ezekiel", tr: "Yechezkel", he: "יחזקאל" },
+      { en: "Hosea", tr: "Hoshea", he: "הושע" },
+      { en: "Joel", tr: "Yoel", he: "יואל" },
+      { en: "Amos", tr: "Amos", he: "עמוס" },
+      { en: "Obadiah", tr: "Ovadiah", he: "עובדיה" },
+      { en: "Jonah", tr: "Yonah", he: "יונה" },
+      { en: "Micah", tr: "Mikhah", he: "מיכה" },
+      { en: "Nahum", tr: "Nachum", he: "נחום" },
+      { en: "Habakkuk", tr: "Chavakuk", he: "חבקוק" },
+      { en: "Zephaniah", tr: "Tzefaniah", he: "צפניה" },
+      { en: "Haggai", tr: "Chaggai", he: "חגי" },
+      { en: "Zechariah", tr: "Zekharyah", he: "זכריה" },
+      { en: "Malachi", tr: "Malakhi", he: "מלאכי" },
     ]},
-    { cat: "Mishnah", books: [
-      "Pirkei Avot", "Mishnah Berakhot", "Mishnah Shabbat", "Mishnah Sukkah",
-      "Mishnah Rosh Hashanah", "Mishnah Yoma", "Mishnah Taanit", "Mishnah Megillah",
-      "Mishnah Bava Kamma", "Mishnah Bava Metzia", "Mishnah Sanhedrin", "Mishnah Makkot",
+    { cat: "Writings — Ketuvim — כתובים", books: [
+      { en: "Psalms", tr: "Tehillim", he: "תהילים" },
+      { en: "Proverbs", tr: "Mishlei", he: "משלי" },
+      { en: "Job", tr: "Iyyov", he: "איוב" },
+      { en: "Song of Songs", tr: "Shir HaShirim", he: "שיר השירים" },
+      { en: "Ruth", tr: "Rut", he: "רות" },
+      { en: "Lamentations", tr: "Eikhah", he: "איכה" },
+      { en: "Ecclesiastes", tr: "Kohelet", he: "קהלת" },
+      { en: "Esther", tr: "Ester", he: "אסתר" },
+      { en: "Daniel", tr: "Daniel", he: "דניאל" },
+      { en: "Nehemiah", tr: "Nechemyah", he: "נחמיה" },
+      { en: "I Chronicles", tr: "Divrei HaYamim Alef", he: "דברי הימים א" },
+      { en: "II Chronicles", tr: "Divrei HaYamim Bet", he: "דברי הימים ב" },
     ]},
-    { cat: "Talmud", books: [
-      "Berakhot", "Shabbat", "Pesachim", "Yoma", "Sukkah", "Rosh Hashanah",
-      "Taanit", "Megillah", "Chagigah", "Sotah", "Gittin", "Kiddushin",
-      "Bava Kamma", "Bava Metzia", "Bava Batra", "Sanhedrin", "Makkot",
-      "Avodah Zarah", "Niddah",
+    { cat: "Mishnah — משנה", books: [
+      { en: "Pirkei Avot", tr: "Pirkei Avot", he: "פרקי אבות" },
+      { en: "Mishnah Berakhot", tr: "Berakhot", he: "משנה ברכות" },
+      { en: "Mishnah Shabbat", tr: "Shabbat", he: "משנה שבת" },
+      { en: "Mishnah Sukkah", tr: "Sukkah", he: "משנה סוכה" },
+      { en: "Mishnah Rosh Hashanah", tr: "Rosh Hashanah", he: "משנה ראש השנה" },
+      { en: "Mishnah Yoma", tr: "Yoma", he: "משנה יומא" },
+      { en: "Mishnah Taanit", tr: "Ta'anit", he: "משנה תענית" },
+      { en: "Mishnah Megillah", tr: "Megillah", he: "משנה מגילה" },
+      { en: "Mishnah Bava Kamma", tr: "Bava Kamma", he: "משנה בבא קמא" },
+      { en: "Mishnah Bava Metzia", tr: "Bava Metzia", he: "משנה בבא מציעא" },
+      { en: "Mishnah Sanhedrin", tr: "Sanhedrin", he: "משנה סנהדרין" },
+      { en: "Mishnah Makkot", tr: "Makkot", he: "משנה מכות" },
     ]},
-    { cat: "Halakhah", books: [
-      "Mishneh Torah, Foundations of the Torah", "Mishneh Torah, Human Dispositions",
-      "Mishneh Torah, Repentance", "Mishneh Torah, Torah Study", "Mishneh Torah, Sabbath",
-      "Shulchan Arukh, Orach Chayyim",
+    { cat: "Talmud — תלמוד", books: [
+      { en: "Berakhot", tr: "Berakhot", he: "ברכות" },
+      { en: "Shabbat", tr: "Shabbat", he: "שבת" },
+      { en: "Pesachim", tr: "Pesachim", he: "פסחים" },
+      { en: "Yoma", tr: "Yoma", he: "יומא" },
+      { en: "Sukkah", tr: "Sukkah", he: "סוכה" },
+      { en: "Rosh Hashanah", tr: "Rosh Hashanah", he: "ראש השנה" },
+      { en: "Taanit", tr: "Ta'anit", he: "תענית" },
+      { en: "Megillah", tr: "Megillah", he: "מגילה" },
+      { en: "Chagigah", tr: "Chagigah", he: "חגיגה" },
+      { en: "Sotah", tr: "Sotah", he: "סוטה" },
+      { en: "Gittin", tr: "Gittin", he: "גיטין" },
+      { en: "Kiddushin", tr: "Kiddushin", he: "קידושין" },
+      { en: "Bava Kamma", tr: "Bava Kamma", he: "בבא קמא" },
+      { en: "Bava Metzia", tr: "Bava Metzia", he: "בבא מציעא" },
+      { en: "Bava Batra", tr: "Bava Batra", he: "בבא בתרא" },
+      { en: "Sanhedrin", tr: "Sanhedrin", he: "סנהדרין" },
+      { en: "Makkot", tr: "Makkot", he: "מכות" },
+      { en: "Avodah Zarah", tr: "Avodah Zarah", he: "עבודה זרה" },
+      { en: "Niddah", tr: "Niddah", he: "נידה" },
     ]},
-    { cat: "Kabbalah / Chasidut", books: ["Zohar", "Tanya, Likutei Amarim"] },
+    { cat: "Halakhah — הלכה", books: [
+      { en: "Mishneh Torah, Foundations of the Torah", tr: "Mishneh Torah, Yesodei HaTorah", he: "משנה תורה, יסודי התורה" },
+      { en: "Mishneh Torah, Human Dispositions", tr: "Mishneh Torah, De'ot", he: "משנה תורה, דעות" },
+      { en: "Mishneh Torah, Repentance", tr: "Mishneh Torah, Teshuvah", he: "משנה תורה, תשובה" },
+      { en: "Mishneh Torah, Torah Study", tr: "Mishneh Torah, Talmud Torah", he: "משנה תורה, תלמוד תורה" },
+      { en: "Mishneh Torah, Sabbath", tr: "Mishneh Torah, Shabbat", he: "משנה תורה, שבת" },
+      { en: "Shulchan Arukh, Orach Chayyim", tr: "Shulchan Arukh, Orach Chayyim", he: "שולחן ערוך, אורח חיים" },
+    ]},
+    { cat: "Kabbalah / Chasidut — קבלה / חסידות", books: [
+      { en: "Zohar", tr: "Zohar", he: "זוהר" },
+      { en: "Tanya, Likutei Amarim", tr: "Tanya, Likutei Amarim", he: "תניא, ליקוטי אמרים" },
+    ]},
   ];
 
   return (
@@ -569,7 +666,7 @@ export default function SeferScroll() {
           <div style={s.panel}>
             {/* Mode */}
             <div>
-              <div style={s.label}>Browse mode</div>
+              <div style={s.label}>Browsing mode</div>
               <div style={s.modeRow}>
                 {MODES.map(m => (
                   <button key={m.id} onClick={() => setMode(m.id)} style={s.modeBtn(mode === m.id)}>
@@ -592,11 +689,11 @@ export default function SeferScroll() {
             <div>
               <div style={s.label}>Text / Book</div>
               <select value={selectedBook} onChange={e => setSelectedBook(e.target.value)} style={s.select}>
-                <option value="">All texts (random from library)</option>
+                <option value="">— Select a text —</option>
                 {BOOK_MENU.map(group => (
                   <optgroup key={group.cat} label={group.cat}>
                     {group.books.map(b => (
-                      <option key={b} value={b}>{b}</option>
+                      <option key={b.en} value={b.en}>{b.en}{b.tr !== b.en ? ` (${b.tr})` : ""} — {b.he}</option>
                     ))}
                   </optgroup>
                 ))}
