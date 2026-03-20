@@ -942,7 +942,7 @@ export default function SeferScroll() {
             color: "var(--text-tertiary)", fontSize: 13,
             borderTop: "1px solid var(--border-light)",
           }}>
-            This is all of the weekly and daily portions. Switch to a different browsing mode to read more texts.
+            This is all of the weekly and daily portions.<br />Switch to a different browsing mode to read more texts.
           </div>
         )}
 
