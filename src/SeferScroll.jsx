@@ -376,6 +376,7 @@ export default function SeferScroll() {
         }
       } else {
         // ===== OTHER MODES =====
+        let nextOrderRef = orderRef; // Track locally so it advances within the loop
         for (let i = 0; i < count; i++) {
           try {
             let card;
@@ -387,8 +388,8 @@ export default function SeferScroll() {
               ref = POPULAR_REFS[idx];
               card = await fetchText(ref, language);
             } else if (mode === "inorder") {
-              if (orderRef) {
-                ref = orderRef;
+              if (nextOrderRef) {
+                ref = nextOrderRef;
               } else if (selectedBook) {
                 ref = selectedBook + " 1";
               } else {
@@ -401,24 +402,26 @@ export default function SeferScroll() {
               newCards.push({ ...card, id: Date.now() + Math.random() });
             }
 
-            // Advance in-order pointer
+            // Advance in-order pointer locally for the next iteration
             if (mode === "inorder" && ref) {
               const m = ref.match(/^(.+?)[\s:](\d+)(?::(\d+))?$/);
               if (m) {
                 const [, book, ch, vs] = m;
-                setOrderRef(vs ? `${book} ${ch}:${+vs + 1}` : `${book} ${+ch + 1}`);
+                nextOrderRef = vs ? `${book} ${ch}:${+vs + 1}` : `${book} ${+ch + 1}`;
               } else {
-                setOrderRef(`${selectedBook || "Genesis"} 2`);
+                nextOrderRef = `${selectedBook || "Genesis"} 2`;
               }
             }
           } catch (e) {
             console.warn("Skipping card:", e.message);
             if (mode === "inorder") {
-              const m = (orderRef || "").match(/^(.+?)\s(\d+)/);
-              if (m) setOrderRef(`${m[1]} ${+m[2] + 1}`);
+              const m = (nextOrderRef || "").match(/^(.+?)\s(\d+)/);
+              if (m) nextOrderRef = `${m[1]} ${+m[2] + 1}`;
             }
           }
         }
+        // Save final position to React state for the next batch
+        if (mode === "inorder") setOrderRef(nextOrderRef);
 
         if (mode === "popular") setPopularIdx(p => p + newCards.length);
       }
