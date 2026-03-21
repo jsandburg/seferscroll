@@ -44,27 +44,43 @@ function catColor(cats) {
 
 function stripHtml(h) {
   if (!h) return "";
-  // Remove footnote markers and footnote content entirely before extracting text
-  // Sefaria uses: <sup>N</sup>, <i class="footnote">...</i>, <span class="footnote">...</span>,
-  // <sup class="footnote-marker">N</sup>, <a class="refLink">...</a> style footnotes
+  // Remove footnote markers and content — use [\s\S]*? to match across newlines
   let cleaned = h
-    .replace(/<sup[^>]*class="footnote-marker"[^>]*>.*?<\/sup>/gi, "")
-    .replace(/<i[^>]*class="footnote"[^>]*>.*?<\/i>/gi, "")
-    .replace(/<span[^>]*class="footnote"[^>]*>.*?<\/span>/gi, "")
-    .replace(/<sup[^>]*>.*?<\/sup>/gi, "")
-    .replace(/<a[^>]*class="[^"]*refLink[^"]*"[^>]*>.*?<\/a>/gi, "")
-    .replace(/<span[^>]*class="[^"]*note[^"]*"[^>]*>.*?<\/span>/gi, "");
+    .replace(/<sup[^>]*class="footnote-marker"[^>]*>[\s\S]*?<\/sup>/gi, "")
+    .replace(/<i[^>]*class="footnote"[^>]*>[\s\S]*?<\/i>/gi, "")
+    .replace(/<span[^>]*class="footnote"[^>]*>[\s\S]*?<\/span>/gi, "")
+    .replace(/<sup[^>]*>[\s\S]*?<\/sup>/gi, "")
+    .replace(/<a[^>]*class="[^"]*refLink[^"]*"[^>]*>[\s\S]*?<\/a>/gi, "")
+    .replace(/<span[^>]*class="[^"]*note[^"]*"[^>]*>[\s\S]*?<\/span>/gi, "")
+    .replace(/<small[^>]*>[\s\S]*?<\/small>/gi, "")
+    // Additional Sefaria footnote patterns
+    .replace(/<span[^>]*class="[^"]*tooltip[^"]*"[^>]*>[\s\S]*?<\/span>/gi, "")
+    .replace(/<span[^>]*class="[^"]*itag[^"]*"[^>]*>[\s\S]*?<\/span>/gi, "")
+    .replace(/<span[^>]*class="[^"]*mfootnote[^"]*"[^>]*>[\s\S]*?<\/span>/gi, "")
+    .replace(/<span[^>]*class="[^"]*nfootnote[^"]*"[^>]*>[\s\S]*?<\/span>/gi, "")
+    .replace(/<a[^>]*class="[^"]*footnote[^"]*"[^>]*>[\s\S]*?<\/a>/gi, "");
+  // Convert block elements and <br> to newlines before extracting text
+  cleaned = cleaned
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/p>/gi, "\n")
+    .replace(/<\/div>/gi, "\n")
+    .replace(/<\/h[1-6]>/gi, "\n");
   const d = document.createElement("div");
   d.innerHTML = cleaned;
-  // Also remove any remaining footnote-class elements the regex might have missed
-  d.querySelectorAll('.footnote, .footnote-marker, .note, sup, sup.fn, .refLink').forEach(el => el.remove());
-  return (d.textContent || "").replace(/\s{2,}/g, " ").trim();
+  // Remove any remaining footnote elements the regex missed
+  d.querySelectorAll('.footnote, .footnote-marker, .note, sup, sup.fn, .refLink, small, .tooltip, .itag, .mfootnote, .nfootnote, [class*="footnote"]').forEach(el => el.remove());
+  return (d.textContent || "")
+    .replace(/[ \t]+/g, " ")        // collapse horizontal whitespace (not newlines)
+    .replace(/\n /g, "\n")          // trim space after newlines
+    .replace(/ \n/g, "\n")          // trim space before newlines
+    .replace(/\n{3,}/g, "\n\n")     // max two newlines in a row
+    .trim();
 }
 
 function flatText(t) {
   if (!t) return "";
   if (typeof t === "string") return stripHtml(t);
-  if (Array.isArray(t)) return t.map(flatText).filter(Boolean).join(" ");
+  if (Array.isArray(t)) return t.map(flatText).filter(Boolean).join("\n");
   return "";
 }
 
@@ -146,6 +162,7 @@ const s = {
     fontSize: 16, lineHeight: 1.8, color: "var(--text-primary)",
     direction: dir, textAlign: dir === "rtl" ? "right" : "left",
     fontFamily: dir === "rtl" ? "var(--font-hebrew)" : "var(--font-body)",
+    whiteSpace: "pre-wrap",
   }),
   footer: {
     display: "flex", justifyContent: "space-between", alignItems: "center",
