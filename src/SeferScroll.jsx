@@ -49,7 +49,7 @@ function stripHtml(h) {
   d.innerHTML = h;
   // Remove all footnote/annotation elements via DOM (handles nesting correctly)
   d.querySelectorAll([
-    'sup', 'small',
+    'sup',
     'i.footnote', 'span.footnote', 'a.footnote',
     '.footnote', '.footnote-marker', '.note', '.refLink',
     '.tooltip', '.itag', '.mfootnote', '.nfootnote',
