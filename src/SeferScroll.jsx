@@ -943,7 +943,7 @@ export default function SeferScroll() {
                   <div style={{ marginBottom: 14 }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                       <div>
-                        <div style={s.catPill(cc)}>{card.categories?.[0] || "Text"}</div>
+                        <div style={{ ...s.catPill(cc), width: "fit-content" }}>{card.categories?.[0] || "Text"}</div>
                         <a href={card.sefariaUrl} target="_blank" rel="noopener noreferrer"
                           style={{ ...s.ref, textDecoration: "none", color: "var(--text-primary)", display: "block", marginTop: 6 }}>
                           {card.ref}
