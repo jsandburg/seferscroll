@@ -83,7 +83,7 @@ function shuffle(a) {
 
 // Styles object — keeps JSX clean
 const s = {
-  page: { minHeight: "100vh", fontFamily: "var(--font-body)" },
+  page: { minHeight: "100vh", fontFamily: "var(--font-body)", display: "flex", flexDirection: "column" },
   header: {
     position: "sticky", top: 0, zIndex: 100,
     background: "var(--bg-primary)",
@@ -91,6 +91,7 @@ const s = {
     padding: "12px 16px",
     backdropFilter: "blur(12px)",
     WebkitBackdropFilter: "blur(12px)",
+    flexShrink: 0,
   },
   headerInner: { display: "flex", alignItems: "center", justifyContent: "space-between", maxWidth: 620, margin: "0 auto" },
   logo: { display: "flex", alignItems: "center", gap: 10 },
