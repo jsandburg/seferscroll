@@ -828,7 +828,7 @@ export default function SeferScroll() {
 
       {/* ===== ABOUT CARD ===== */}
       {showAbout && (
-        <div style={{ maxWidth: 620, margin: "14px auto", padding: "0 14px" }}>
+        <div style={{ maxWidth: 620, margin: "14px auto", padding: "0 14px", flexShrink: 0 }}>
           <div style={{
             background: "var(--bg-primary)",
             borderRadius: "var(--radius-lg)",
