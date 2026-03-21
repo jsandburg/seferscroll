@@ -44,33 +44,24 @@ function catColor(cats) {
 
 function stripHtml(h) {
   if (!h) return "";
-  // Remove footnote markers and content — use [\s\S]*? to match across newlines
-  let cleaned = h
-    .replace(/<sup[^>]*class="footnote-marker"[^>]*>[\s\S]*?<\/sup>/gi, "")
-    .replace(/<i[^>]*class="footnote"[^>]*>[\s\S]*?<\/i>/gi, "")
-    .replace(/<span[^>]*class="footnote"[^>]*>[\s\S]*?<\/span>/gi, "")
-    .replace(/<sup[^>]*>[\s\S]*?<\/sup>/gi, "")
-    .replace(/<a[^>]*class="[^"]*refLink[^"]*"[^>]*>[\s\S]*?<\/a>/gi, "")
-    .replace(/<span[^>]*class="[^"]*note[^"]*"[^>]*>[\s\S]*?<\/span>/gi, "")
-    .replace(/<small[^>]*>[\s\S]*?<\/small>/gi, "")
-    // Additional Sefaria footnote patterns
-    .replace(/<span[^>]*class="[^"]*tooltip[^"]*"[^>]*>[\s\S]*?<\/span>/gi, "")
-    .replace(/<span[^>]*class="[^"]*itag[^"]*"[^>]*>[\s\S]*?<\/span>/gi, "")
-    .replace(/<span[^>]*class="[^"]*mfootnote[^"]*"[^>]*>[\s\S]*?<\/span>/gi, "")
-    .replace(/<span[^>]*class="[^"]*nfootnote[^"]*"[^>]*>[\s\S]*?<\/span>/gi, "")
-    .replace(/<a[^>]*class="[^"]*footnote[^"]*"[^>]*>[\s\S]*?<\/a>/gi, "");
-  // Convert block elements and <br> to newlines before extracting text
-  cleaned = cleaned
-    .replace(/<br\s*\/?>/gi, "\n")
-    .replace(/<\/p>/gi, "\n")
-    .replace(/<\/div>/gi, "\n")
-    .replace(/<\/h[1-6]>/gi, "\n");
+  // First pass: let the DOM parser handle nested tags properly
   const d = document.createElement("div");
-  d.innerHTML = cleaned;
-  // Remove any remaining footnote elements the regex missed
-  d.querySelectorAll('.footnote, .footnote-marker, .note, sup, sup.fn, .refLink, small, .tooltip, .itag, .mfootnote, .nfootnote, [class*="footnote"]').forEach(el => el.remove());
+  d.innerHTML = h;
+  // Remove all footnote/annotation elements via DOM (handles nesting correctly)
+  d.querySelectorAll([
+    'sup', 'small',
+    'i.footnote', 'span.footnote', 'a.footnote',
+    '.footnote', '.footnote-marker', '.note', '.refLink',
+    '.tooltip', '.itag', '.mfootnote', '.nfootnote',
+    'sup.fn', '[class*="footnote"]', '[class*="note"]',
+  ].join(', ')).forEach(el => el.remove());
+  // Convert block elements and <br> to newlines
+  d.querySelectorAll('br').forEach(el => el.replaceWith('\n'));
+  d.querySelectorAll('p, div, h1, h2, h3, h4, h5, h6').forEach(el => {
+    el.insertAdjacentText('afterend', '\n');
+  });
   return (d.textContent || "")
-    .replace(/[ \t]+/g, " ")        // collapse horizontal whitespace (not newlines)
+    .replace(/[ \t]+/g, " ")        // collapse horizontal whitespace
     .replace(/\n /g, "\n")          // trim space after newlines
     .replace(/ \n/g, "\n")          // trim space before newlines
     .replace(/\n{3,}/g, "\n\n")     // max two newlines in a row
