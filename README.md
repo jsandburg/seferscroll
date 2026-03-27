@@ -10,30 +10,30 @@ In memory of the lovely Mahla Shaebanyan-Bady (1980–2023), who was neither Jew
 
 ## Browsing Modes
 
-- **Random** — Pulls from a curated collection of ~480 passages spanning Tanakh, Talmud, Mishnah, Halakhah, Kabbalah, and Chasidut. Select a specific book to randomize within it.
-- **Ordered** — Reads through a text sequentially from beginning to end. Supports standard chapter numbering, Talmud daf pagination (2a → 2b → 3a → 3b), Zohar parasha sections, and Tanya's multi-part structure.
-- **Parasha** — Shows this week's Torah portion, Haftarah, and daily study portions (Daf Yomi, Daily Mishnah, Daily Rambam, and more) via the Sefaria Calendars API. Includes a description of the parasha and expandable aliyot links.
-- **Popular** — Cycles through well-known passages: Psalms 23, the Shema, Pirkei Avot, Hillel's golden rule, Ecclesiastes 3, and others.
+- **Random** — Draws from all 929 chapters across the complete Tanakh. Select a specific book to randomize within it. Suitable for goral.
+- **Ordered** — Reads through a text sequentially from beginning to end, chapter by chapter. Detects end of book and notifies you when there are no more chapters.
+- **Parasha** — Shows this week's Torah portion, Haftarah, and daily study portions via the Sefaria Calendars API. Displays the current Hebrew date from Hebcal.
+- **Popular** — Curated collection of well-known passages from across Jewish literature, including Psalms 23, the Shema, Pirkei Avot, Hillel's golden rule, Ecclesiastes 3, and others.
 
 ## Text Selection
 
-The book dropdown includes texts from seven categories, each shown with English name, transliteration, and Hebrew:
+The book dropdown includes every book of the Tanakh, each shown with English name, transliteration, and Hebrew:
 
-- **Torah — תורה** (Genesis through Deuteronomy)
-- **Prophets — Nevi'im — נביאים** (Joshua through Malachi)
-- **Writings — Ketuvim — כתובים** (Psalms through II Chronicles)
-- **Mishnah — משנה** (Pirkei Avot, Berakhot, Sanhedrin, and others)
-- **Talmud — תלמוד** (19 tractates including Berakhot, Shabbat, Sanhedrin)
-- **Halakhah — הלכה** (Mishneh Torah, Shulchan Arukh)
-- **Kabbalah / Chasidut — קבלה / חסידות** (Zohar organized by parasha; all five parts of Tanya: Likkutei Amarim, Sha'ar HaYichud VehaEmunah, Iggeret HaTeshuvah, Iggeret HaKodesh, Kuntres Acharon)
+- **Torah — תורה** — Genesis (Bereshit) through Deuteronomy (Devarim)
+- **Prophets — Nevi'im — נביאים** — Joshua through Malachi (21 books)
+- **Writings — Ketuvim — כתובים** — Psalms through II Chronicles (13 books, including Ezra)
 
-## Other Features
+## Features
 
-- "Read with original Hebrew on Sefaria" link on every text for full bilingual study
-- Light and dark mode toggle (auto-detects system preference)
-- Color-coded category indicators on each text
+- Mobile snap scroll — full-screen swipeable cards on screens 1024px or narrower
+- Desktop scroll — traditional card feed on wider screens
+- Mobile/Desktop toggle in settings to override auto-detection
+- Light and dark mode (auto-detects system preference, manual toggle available)
+- Color-coded category indicators on each text card
 - Footnotes and reference markers automatically stripped for clean reading
-- Share button (uses native share on mobile, copies to clipboard on desktop)
+- "Read with original Hebrew on Sefaria" link (mobile: linked from the book name; desktop: in card footer)
+- Share button with clipboard feedback ("Copied!" confirmation on desktop)
+- About page with links to Sefaria, Hebcal, and GitHub
 - Built-in sample texts as fallback when the API can't be reached
 - Mobile-friendly responsive design
 
@@ -42,6 +42,7 @@ The book dropdown includes texts from seven categories, each shown with English 
 - React 18
 - Vite
 - Sefaria API (no key required)
+- Hebcal API (Hebrew date conversion)
 - Vercel (hosting + API proxy to handle CORS)
 
 ## Quick Start (Local Development)
@@ -60,11 +61,11 @@ npm run dev
 
 4. Open http://localhost:5173 in your browser
 
-The Vite dev server includes a proxy that forwards `/sefaria-api/` requests to `sefaria.org`, so the API works locally without CORS issues.
+The Vite dev server includes proxies that forward `/sefaria-api/` and `/hebcal/` requests to their respective APIs, so everything works locally without CORS issues.
 
 ## Deploy to Vercel
 
-See the DEPLOY_GUIDE.md file for detailed step-by-step instructions. The `vercel.json` file includes a rewrite rule that proxies API requests through your Vercel domain to avoid browser CORS restrictions.
+See the DEPLOY_GUIDE.md file for detailed step-by-step instructions. The `vercel.json` file includes rewrite rules that proxy API requests through your Vercel domain to avoid browser CORS restrictions.
 
 ## Disclaimer
 

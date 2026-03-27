@@ -6,9 +6,9 @@ const API = "/sefaria-api";
 
 // Fallback texts for initial load / error states
 const SAMPLE_CARDS = [
-  { ref: "Genesis 1:1-5", heRef: "בראשית א׳:א׳-ה׳", text: "In the beginning God created the heaven and the earth. Now the earth was unformed and void, and darkness was upon the face of the deep; and the spirit of God hovered over the face of the waters. And God said: 'Let there be light.' And there was light. And God saw the light, that it was good; and God divided the light from the darkness. And God called the light Day, and the darkness He called Night. And there was evening and there was morning, one day.", heText: "בְּרֵאשִׁ֖ית בָּרָ֣א אֱלֹהִ֑ים אֵ֥ת הַשָּׁמַ֖יִם וְאֵ֥ת הָאָֽרֶץ׃ וְהָאָ֗רֶץ הָיְתָ֥ה תֹ֙הוּ֙ וָבֹ֔הוּ וְחֹ֖שֶׁךְ עַל־פְּנֵ֣י תְה֑וֹם וְר֣וּחַ אֱלֹהִ֔ים מְרַחֶ֖פֶת עַל־פְּנֵ֥י הַמָּֽיִם׃ וַיֹּ֥אמֶר אֱלֹהִ֖ים יְהִ֣י א֑וֹר וַֽיְהִי־אֽוֹר׃", categories: ["Tanakh", "Torah", "Genesis"], sefariaUrl: "https://www.sefaria.org/Genesis.1.1-5" },
-  { ref: "Psalms 23", heRef: "תהילים כ״ג", text: "A Psalm of David. The LORD is my shepherd; I shall not want. He maketh me to lie down in green pastures; He leadeth me beside the still waters. He restoreth my soul; He guideth me in straight paths for His name's sake. Yea, though I walk through the valley of the shadow of death, I will fear no evil, for Thou art with me; Thy rod and Thy staff, they comfort me.", heText: "מִזְמ֥וֹר לְדָוִ֑ד יְהֹוָ֥ה רֹ֝עִ֗י לֹ֣א אֶחְסָֽר׃ בִּנְא֣וֹת דֶּ֭שֶׁא יַרְבִּיצֵ֑נִי עַל־מֵ֖י מְנֻח֣וֹת יְנַהֲלֵֽנִי׃", categories: ["Tanakh", "Writings", "Psalms"], sefariaUrl: "https://www.sefaria.org/Psalms.23" },
-  { ref: "Pirkei Avot 1:14", heRef: "פרקי אבות א׳:י״ד", text: "He [Hillel] used to say: If I am not for myself, who will be for me? And when I am only for myself, what am I? And if not now, when?", heText: "הוּא הָיָה אוֹמֵר, אִם אֵין אֲנִי לִי, מִי לִי. וּכְשֶׁאֲנִי לְעַצְמִי, מָה אֲנִי. וְאִם לֹא עַכְשָׁיו, אֵימָתָי.", categories: ["Mishnah", "Seder Nezikin", "Pirkei Avot"], sefariaUrl: "https://www.sefaria.org/Pirkei_Avot.1.14" },
+  { ref: "Genesis 1:1-5", heRef: "בראשית א׳:א׳-ה׳", text: "In the beginning God created the heaven and the earth. Now the earth was unformed and void, and darkness was upon the face of the deep; and the spirit of God hovered over the face of the waters. And God said: 'Let there be light.' And there was light. And God saw the light, that it was good; and God divided the light from the darkness. And God called the light Day, and the darkness He called Night. And there was evening and there was morning, one day.", categories: ["Tanakh", "Torah", "Genesis"], sefariaUrl: "https://www.sefaria.org/Genesis.1.1-5" },
+  { ref: "Psalms 23", heRef: "תהילים כ״ג", text: "A Psalm of David. The LORD is my shepherd; I shall not want. He maketh me to lie down in green pastures; He leadeth me beside the still waters. He restoreth my soul; He guideth me in straight paths for His name's sake. Yea, though I walk through the valley of the shadow of death, I will fear no evil, for Thou art with me; Thy rod and Thy staff, they comfort me.", categories: ["Tanakh", "Writings", "Psalms"], sefariaUrl: "https://www.sefaria.org/Psalms.23" },
+  { ref: "Pirkei Avot 1:14", heRef: "פרקי אבות א׳:י״ד", text: "He [Hillel] used to say: If I am not for myself, who will be for me? And when I am only for myself, what am I? And if not now, when?", categories: ["Mishnah", "Seder Nezikin", "Pirkei Avot"], sefariaUrl: "https://www.sefaria.org/Pirkei_Avot.1.14" },
 ];
 
 const POPULAR_REFS = [
@@ -53,7 +53,7 @@ function stripHtml(h) {
     'i.footnote', 'span.footnote', 'a.footnote',
     '.footnote', '.footnote-marker', '.note', '.refLink',
     '.tooltip', '.itag', '.mfootnote', '.nfootnote',
-    'sup.fn', '[class*="footnote"]', '[class*="note"]',
+    'sup.fn', '[class*="footnote"]', '.note-callout', '.note-content',
   ].join(', ')).forEach(el => el.remove());
   // Convert block elements and <br> to newlines
   d.querySelectorAll('br').forEach(el => el.replaceWith('\n'));
@@ -87,6 +87,34 @@ function shuffle(a) {
   }
   return b;
 }
+
+// Books that use daf (page) numbering instead of chapters (Fix #15: moved outside loadMore)
+const DAF_BOOKS = new Set([
+  "Berakhot", "Shabbat", "Pesachim", "Yoma", "Sukkah", "Rosh Hashanah",
+  "Taanit", "Megillah", "Chagigah", "Sotah", "Gittin", "Kiddushin",
+  "Bava Kamma", "Bava Metzia", "Bava Batra", "Sanhedrin", "Makkot",
+  "Avodah Zarah", "Niddah",
+]);
+
+// Chapter counts for every Tanakh book (Fix #1: includes Ezra)
+const TANAKH_BOOKS = {
+  // Torah
+  "Genesis": 50, "Exodus": 40, "Leviticus": 27, "Numbers": 36, "Deuteronomy": 34,
+  // Nevi'im
+  "Joshua": 24, "Judges": 21, "I Samuel": 31, "II Samuel": 24,
+  "I Kings": 22, "II Kings": 25, "Isaiah": 66, "Jeremiah": 52, "Ezekiel": 48,
+  "Hosea": 14, "Joel": 4, "Amos": 9, "Obadiah": 1, "Jonah": 4, "Micah": 7,
+  "Nahum": 3, "Habakkuk": 3, "Zephaniah": 3, "Haggai": 2, "Zechariah": 14, "Malachi": 3,
+  // Ketuvim
+  "Psalms": 150, "Proverbs": 31, "Job": 42, "Song of Songs": 8, "Ruth": 4,
+  "Lamentations": 5, "Ecclesiastes": 12, "Esther": 10, "Daniel": 12,
+  "Ezra": 10, "Nehemiah": 13, "I Chronicles": 29, "II Chronicles": 36,
+};
+
+// Generate all chapter refs from the TANAKH_BOOKS map (Fix #5: moved outside component)
+const RANDOM_REFS = Object.entries(TANAKH_BOOKS).flatMap(
+  ([book, chapters]) => Array.from({length: chapters}, (_, i) => `${book} ${i + 1}`)
+);
 
 // Styles object — keeps JSX clean
 const s = {
@@ -149,12 +177,11 @@ const s = {
   ref: { fontSize: 17, fontWeight: 600, color: "var(--text-primary)", lineHeight: 1.3 },
   heRef: { fontSize: 14, color: "var(--text-secondary)", direction: "rtl", marginTop: 3, fontFamily: "var(--font-hebrew)" },
   catPill: (color) => ({ fontSize: 11, color, background: `${color}18`, padding: "3px 10px", borderRadius: 20, whiteSpace: "nowrap", fontWeight: 500 }),
-  textBody: (dir) => ({
+  textBody: {
     fontSize: 16, lineHeight: 1.8, color: "var(--text-primary)",
-    direction: dir, textAlign: dir === "rtl" ? "right" : "left",
-    fontFamily: dir === "rtl" ? "var(--font-hebrew)" : "var(--font-body)",
+    fontFamily: "var(--font-body)",
     whiteSpace: "pre-wrap",
-  }),
+  },
   footer: {
     display: "flex", justifyContent: "space-between", alignItems: "center",
     marginTop: 16, paddingTop: 14,
@@ -204,6 +231,10 @@ export default function SeferScroll() {
     return "mobile";
   });
   const [showAbout, setShowAbout] = useState(false);
+  const [resetKey, setResetKey] = useState(0); // Fix #2: force reset even when mode/book unchanged
+  const [orderEnded, setOrderEnded] = useState(false); // Fix #3: detect end of book in ordered mode
+  const [popularLooped, setPopularLooped] = useState(false); // Fix #10: detect popular mode cycling
+  const [copiedId, setCopiedId] = useState(null); // Fix #11: share button feedback
   const busy = useRef(false);
   const obsRef = useRef(null);
   const sentRef = useRef(null);
@@ -213,15 +244,17 @@ export default function SeferScroll() {
     document.documentElement.setAttribute("data-theme", theme);
   }, [theme]);
 
-  // Load Hebrew date from Hebcal RSS feed when in Parasha mode
+  // Load Hebrew date from Hebcal converter using browser's local date
   useEffect(() => {
     if (mode !== "parasha") return;
-    fetch("/hebcal/etc/hdate-en.xml")
-      .then(r => r.text())
-      .then(xml => {
-        const doc = new DOMParser().parseFromString(xml, "text/xml");
-        const title = doc.querySelector("item > title")?.textContent || "";
-        setHebrewDate(title.trim());
+    const now = new Date();
+    const gy = now.getFullYear(), gm = now.getMonth() + 1, gd = now.getDate();
+    fetch(`/hebcal/converter?cfg=json&gy=${gy}&gm=${gm}&gd=${gd}&g2h=1`)
+      .then(r => r.json())
+      .then(data => {
+        if (data.hd && data.hm && data.hy) {
+          setHebrewDate(`${data.hd} ${data.hm}, ${data.hy}`);
+        }
       })
       .catch(() => {});
   }, [mode]);
@@ -247,188 +280,6 @@ export default function SeferScroll() {
     };
   }, []);
 
-  // We avoid Sefaria's /texts/random endpoint because it redirects through
-  // a URL the Vercel proxy can't follow. Instead we pick from a large
-  // curated list of refs that are all guaranteed to exist on Sefaria.
-  const RANDOM_REFS = [
-    // Torah
-    "Genesis 1", "Genesis 2", "Genesis 3", "Genesis 6", "Genesis 7", "Genesis 9",
-    "Genesis 11", "Genesis 12", "Genesis 15", "Genesis 17", "Genesis 18", "Genesis 22",
-    "Genesis 24", "Genesis 25", "Genesis 27", "Genesis 28", "Genesis 32", "Genesis 37",
-    "Genesis 39", "Genesis 41", "Genesis 42", "Genesis 45", "Genesis 49", "Genesis 50",
-    "Exodus 1", "Exodus 2", "Exodus 3", "Exodus 4", "Exodus 7", "Exodus 10",
-    "Exodus 12", "Exodus 14", "Exodus 15", "Exodus 16", "Exodus 19", "Exodus 20",
-    "Exodus 25", "Exodus 32", "Exodus 33", "Exodus 34", "Exodus 35", "Exodus 40",
-    "Leviticus 1", "Leviticus 16", "Leviticus 18", "Leviticus 19", "Leviticus 23", "Leviticus 25",
-    "Numbers 6", "Numbers 11", "Numbers 12", "Numbers 13", "Numbers 14", "Numbers 16",
-    "Numbers 20", "Numbers 22", "Numbers 23", "Numbers 24", "Numbers 27",
-    "Deuteronomy 1", "Deuteronomy 4", "Deuteronomy 5", "Deuteronomy 6", "Deuteronomy 7",
-    "Deuteronomy 8", "Deuteronomy 10", "Deuteronomy 11", "Deuteronomy 16", "Deuteronomy 18",
-    "Deuteronomy 26", "Deuteronomy 28", "Deuteronomy 29", "Deuteronomy 30",
-    "Deuteronomy 31", "Deuteronomy 32", "Deuteronomy 33", "Deuteronomy 34",
-    // Nevi'im
-    "Joshua 1", "Joshua 2", "Joshua 3", "Joshua 6", "Joshua 24",
-    "Judges 4", "Judges 5", "Judges 6", "Judges 13", "Judges 14", "Judges 16",
-    "I Samuel 1", "I Samuel 2", "I Samuel 3", "I Samuel 8", "I Samuel 16", "I Samuel 17",
-    "II Samuel 1", "II Samuel 6", "II Samuel 7", "II Samuel 11", "II Samuel 12",
-    "I Kings 1", "I Kings 3", "I Kings 5", "I Kings 8", "I Kings 10", "I Kings 17", "I Kings 18", "I Kings 19",
-    "II Kings 2", "II Kings 4", "II Kings 5", "II Kings 17", "II Kings 22",
-    "Isaiah 1", "Isaiah 2", "Isaiah 5", "Isaiah 6", "Isaiah 9", "Isaiah 11",
-    "Isaiah 25", "Isaiah 35", "Isaiah 40", "Isaiah 42", "Isaiah 43", "Isaiah 49",
-    "Isaiah 52", "Isaiah 53", "Isaiah 55", "Isaiah 58", "Isaiah 60", "Isaiah 61", "Isaiah 66",
-    "Jeremiah 1", "Jeremiah 2", "Jeremiah 7", "Jeremiah 17", "Jeremiah 29", "Jeremiah 31",
-    "Ezekiel 1", "Ezekiel 18", "Ezekiel 34", "Ezekiel 37",
-    "Hosea 2", "Hosea 6", "Hosea 14", "Joel 2", "Joel 3",
-    "Amos 3", "Amos 5", "Amos 9", "Obadiah 1", "Jonah 1", "Jonah 2", "Jonah 3", "Jonah 4",
-    "Micah 4", "Micah 6", "Nahum 1", "Habakkuk 2", "Habakkuk 3",
-    "Zephaniah 3", "Haggai 2", "Zechariah 8", "Zechariah 14", "Malachi 3",
-    // Ketuvim
-    "Psalms 1", "Psalms 2", "Psalms 8", "Psalms 15", "Psalms 16", "Psalms 19",
-    "Psalms 22", "Psalms 23", "Psalms 24", "Psalms 27", "Psalms 29", "Psalms 30",
-    "Psalms 33", "Psalms 34", "Psalms 37", "Psalms 42", "Psalms 46", "Psalms 48",
-    "Psalms 51", "Psalms 63", "Psalms 67", "Psalms 72", "Psalms 84", "Psalms 86",
-    "Psalms 90", "Psalms 91", "Psalms 92", "Psalms 93", "Psalms 95", "Psalms 96",
-    "Psalms 100", "Psalms 103", "Psalms 104", "Psalms 107", "Psalms 111",
-    "Psalms 113", "Psalms 115", "Psalms 116", "Psalms 118", "Psalms 119",
-    "Psalms 121", "Psalms 122", "Psalms 126", "Psalms 130", "Psalms 133",
-    "Psalms 136", "Psalms 137", "Psalms 139", "Psalms 145", "Psalms 146", "Psalms 148", "Psalms 150",
-    "Proverbs 1", "Proverbs 2", "Proverbs 3", "Proverbs 4", "Proverbs 6",
-    "Proverbs 8", "Proverbs 10", "Proverbs 15", "Proverbs 22", "Proverbs 25", "Proverbs 31",
-    "Job 1", "Job 2", "Job 3", "Job 28", "Job 38", "Job 40", "Job 42",
-    "Song of Songs 1", "Song of Songs 2", "Song of Songs 3", "Song of Songs 4",
-    "Song of Songs 5", "Song of Songs 7", "Song of Songs 8",
-    "Ruth 1", "Ruth 2", "Ruth 3", "Ruth 4",
-    "Lamentations 1", "Lamentations 2", "Lamentations 3", "Lamentations 5",
-    "Ecclesiastes 1", "Ecclesiastes 2", "Ecclesiastes 3", "Ecclesiastes 5",
-    "Ecclesiastes 7", "Ecclesiastes 9", "Ecclesiastes 11", "Ecclesiastes 12",
-    "Esther 1", "Esther 2", "Esther 3", "Esther 4", "Esther 7", "Esther 8", "Esther 9",
-    "Daniel 1", "Daniel 2", "Daniel 3", "Daniel 5", "Daniel 6", "Daniel 7", "Daniel 12",
-    "Nehemiah 1", "Nehemiah 8", "Nehemiah 9",
-    "I Chronicles 16", "I Chronicles 29", "II Chronicles 6", "II Chronicles 20",
-    // === NON-TANAKH REFS (commented out — uncomment to re-enable) ===
-    // // Mishnah
-    // "Pirkei Avot 1", "Pirkei Avot 2", "Pirkei Avot 3", "Pirkei Avot 4",
-    // "Pirkei Avot 5", "Pirkei Avot 6",
-    // "Mishnah Berakhot 1", "Mishnah Berakhot 9",
-    // "Mishnah Shabbat 1", "Mishnah Sukkah 1",
-    // "Mishnah Rosh Hashanah 1", "Mishnah Yoma 8",
-    // "Mishnah Taanit 1", "Mishnah Megillah 1",
-    // "Mishnah Bava Kamma 1", "Mishnah Bava Metzia 1",
-    // "Mishnah Sanhedrin 1", "Mishnah Sanhedrin 4", "Mishnah Sanhedrin 10",
-    // "Mishnah Makkot 3",
-    // // Talmud
-    // "Berakhot 2a", "Berakhot 6a", "Berakhot 17a", "Berakhot 26b", "Berakhot 33b", "Berakhot 55a",
-    // "Shabbat 21b", "Shabbat 31a", "Shabbat 73a", "Shabbat 88a", "Shabbat 119b",
-    // "Pesachim 10a", "Pesachim 50a", "Pesachim 68b",
-    // "Yoma 9b", "Yoma 67b", "Yoma 85b", "Yoma 86a",
-    // "Sukkah 28a", "Sukkah 49b",
-    // "Rosh Hashanah 16a", "Rosh Hashanah 17b",
-    // "Taanit 7a", "Taanit 23a", "Taanit 29a",
-    // "Megillah 6b", "Megillah 14a",
-    // "Chagigah 12a", "Chagigah 15a",
-    // "Sotah 14a",
-    // "Gittin 55b", "Gittin 56a", "Gittin 56b",
-    // "Kiddushin 30b", "Kiddushin 40b",
-    // "Bava Kamma 17a", "Bava Kamma 30a",
-    // "Bava Metzia 38b", "Bava Metzia 59a", "Bava Metzia 59b", "Bava Metzia 83a",
-    // "Bava Batra 12a", "Bava Batra 16b",
-    // "Sanhedrin 37a", "Sanhedrin 38b", "Sanhedrin 56a", "Sanhedrin 97a", "Sanhedrin 98a",
-    // "Makkot 23b", "Makkot 24a",
-    // "Avodah Zarah 2b", "Avodah Zarah 17a", "Avodah Zarah 20b",
-    // "Niddah 30b", "Niddah 31a",
-    // // Halakhah
-    // "Mishneh Torah, Foundations of the Torah 1", "Mishneh Torah, Foundations of the Torah 2",
-    // "Mishneh Torah, Human Dispositions 1", "Mishneh Torah, Human Dispositions 2",
-    // "Mishneh Torah, Repentance 1", "Mishneh Torah, Repentance 2",
-    // "Mishneh Torah, Torah Study 1", "Mishneh Torah, Sabbath 1",
-    // "Shulchan Arukh, Orach Chayyim 1",
-    // // Kabbalah / Chasidut
-    // "Zohar, Introduction.1", "Zohar, Introduction.5", "Zohar, Introduction.10",
-    // "Zohar, Bereshit.1", "Zohar, Bereshit.3", "Zohar, Bereshit.6",
-    // "Zohar, Noach.1", "Zohar, Noach.3",
-    // "Zohar, Lech Lecha.1", "Zohar, Lech Lecha.4",
-    // "Zohar, Vayera.1", "Zohar, Vayera.3",
-    // "Zohar, Chayei Sara.1", "Zohar, Toldot.1",
-    // "Zohar, Vayetzei.1", "Zohar, Vayishlach.1",
-    // "Zohar, Vayeshev.1", "Zohar, Miketz.1",
-    // "Zohar, Vayigash.1", "Zohar, Vayechi.1",
-    // "Zohar, Shemot.1", "Zohar, Vaera.1",
-    // "Zohar, Bo.1", "Zohar, Beshalach.1",
-    // "Zohar, Yitro.1", "Zohar, Mishpatim.1",
-    // "Zohar, Terumah.1", "Zohar, Vayakhel.1",
-    // "Zohar, Pekudei.1",
-    // // Tanya Part I — Likkutei Amarim (all 53 chapters)
-    // "Tanya, Part I; Likkutei Amarim.1", "Tanya, Part I; Likkutei Amarim.2", "Tanya, Part I; Likkutei Amarim.3",
-    // "Tanya, Part I; Likkutei Amarim.4", "Tanya, Part I; Likkutei Amarim.5", "Tanya, Part I; Likkutei Amarim.6",
-    // "Tanya, Part I; Likkutei Amarim.7", "Tanya, Part I; Likkutei Amarim.8", "Tanya, Part I; Likkutei Amarim.9",
-    // "Tanya, Part I; Likkutei Amarim.10", "Tanya, Part I; Likkutei Amarim.11", "Tanya, Part I; Likkutei Amarim.12",
-    // "Tanya, Part I; Likkutei Amarim.13", "Tanya, Part I; Likkutei Amarim.14", "Tanya, Part I; Likkutei Amarim.15",
-    // "Tanya, Part I; Likkutei Amarim.16", "Tanya, Part I; Likkutei Amarim.17", "Tanya, Part I; Likkutei Amarim.18",
-    // "Tanya, Part I; Likkutei Amarim.19", "Tanya, Part I; Likkutei Amarim.20", "Tanya, Part I; Likkutei Amarim.21",
-    // "Tanya, Part I; Likkutei Amarim.22", "Tanya, Part I; Likkutei Amarim.23", "Tanya, Part I; Likkutei Amarim.24",
-    // "Tanya, Part I; Likkutei Amarim.25", "Tanya, Part I; Likkutei Amarim.26", "Tanya, Part I; Likkutei Amarim.27",
-    // "Tanya, Part I; Likkutei Amarim.28", "Tanya, Part I; Likkutei Amarim.29", "Tanya, Part I; Likkutei Amarim.30",
-    // "Tanya, Part I; Likkutei Amarim.31", "Tanya, Part I; Likkutei Amarim.32", "Tanya, Part I; Likkutei Amarim.33",
-    // "Tanya, Part I; Likkutei Amarim.34", "Tanya, Part I; Likkutei Amarim.35", "Tanya, Part I; Likkutei Amarim.36",
-    // "Tanya, Part I; Likkutei Amarim.37", "Tanya, Part I; Likkutei Amarim.38", "Tanya, Part I; Likkutei Amarim.39",
-    // "Tanya, Part I; Likkutei Amarim.40", "Tanya, Part I; Likkutei Amarim.41", "Tanya, Part I; Likkutei Amarim.42",
-    // "Tanya, Part I; Likkutei Amarim.43", "Tanya, Part I; Likkutei Amarim.44", "Tanya, Part I; Likkutei Amarim.45",
-    // "Tanya, Part I; Likkutei Amarim.46", "Tanya, Part I; Likkutei Amarim.47", "Tanya, Part I; Likkutei Amarim.48",
-    // "Tanya, Part I; Likkutei Amarim.49", "Tanya, Part I; Likkutei Amarim.50", "Tanya, Part I; Likkutei Amarim.51",
-    // "Tanya, Part I; Likkutei Amarim.52", "Tanya, Part I; Likkutei Amarim.53",
-    // // Tanya Part II — Shaar HaYichud VehaEmunah (12 chapters)
-    // "Tanya, Part II; Shaar HaYichud VehaEmunah.1", "Tanya, Part II; Shaar HaYichud VehaEmunah.2",
-    // "Tanya, Part II; Shaar HaYichud VehaEmunah.3", "Tanya, Part II; Shaar HaYichud VehaEmunah.4",
-    // "Tanya, Part II; Shaar HaYichud VehaEmunah.5", "Tanya, Part II; Shaar HaYichud VehaEmunah.6",
-    // "Tanya, Part II; Shaar HaYichud VehaEmunah.7", "Tanya, Part II; Shaar HaYichud VehaEmunah.8",
-    // "Tanya, Part II; Shaar HaYichud VehaEmunah.9", "Tanya, Part II; Shaar HaYichud VehaEmunah.10",
-    // "Tanya, Part II; Shaar HaYichud VehaEmunah.11", "Tanya, Part II; Shaar HaYichud VehaEmunah.12",
-    // // Tanya Part III — Iggeret HaTeshuvah (12 chapters)
-    // "Tanya, Part III; Iggeret HaTeshuvah.1", "Tanya, Part III; Iggeret HaTeshuvah.2",
-    // "Tanya, Part III; Iggeret HaTeshuvah.3", "Tanya, Part III; Iggeret HaTeshuvah.4",
-    // "Tanya, Part III; Iggeret HaTeshuvah.5", "Tanya, Part III; Iggeret HaTeshuvah.6",
-    // "Tanya, Part III; Iggeret HaTeshuvah.7", "Tanya, Part III; Iggeret HaTeshuvah.8",
-    // "Tanya, Part III; Iggeret HaTeshuvah.9", "Tanya, Part III; Iggeret HaTeshuvah.10",
-    // "Tanya, Part III; Iggeret HaTeshuvah.11", "Tanya, Part III; Iggeret HaTeshuvah.12",
-    // // Tanya Part IV — Iggeret HaKodesh (selections)
-    // "Tanya, Part IV; Iggeret HaKodesh.1", "Tanya, Part IV; Iggeret HaKodesh.2",
-    // "Tanya, Part IV; Iggeret HaKodesh.3", "Tanya, Part IV; Iggeret HaKodesh.4",
-    // "Tanya, Part IV; Iggeret HaKodesh.5", "Tanya, Part IV; Iggeret HaKodesh.10",
-    // "Tanya, Part IV; Iggeret HaKodesh.15", "Tanya, Part IV; Iggeret HaKodesh.20",
-    // // Tanya Part V — Kuntres Acharon (selections)
-    // "Tanya, Part V; Kuntres Acharon.1", "Tanya, Part V; Kuntres Acharon.2",
-    // "Tanya, Part V; Kuntres Acharon.3", "Tanya, Part V; Kuntres Acharon.4",
-    // // Derekh Hashem (Ramchal)
-    // "Derekh Hashem, Introduction.1",
-    // "Derekh Hashem, Part One, On the Creator.1",
-    // "Derekh Hashem, Part One, On the Purpose of Creation.1",
-    // "Derekh Hashem, Part One, On Mankind.1",
-    // "Derekh Hashem, Part One, On Human Responsibility.1",
-    // "Derekh Hashem, Part One, On the Spiritual Realm.1",
-    // "Derekh Hashem, Part Two, On Divine Providence in General.1",
-    // "Derekh Hashem, Part Two, On Mankind in This World.1",
-    // "Derekh Hashem, Part Two, On Personal Providence.1",
-    // "Derekh Hashem, Part Two, On Israel and the Nations.1",
-    // "Derekh Hashem, Part Two, On How Providence Works.1",
-    // "Derekh Hashem, Part Two, On the System of Providence.1",
-    // "Derekh Hashem, Part Two, On the Influence of the Stars.1",
-    // "Derekh Hashem, Part Two, On Specific Modes of Providence.1",
-    // "Derekh Hashem, Part Three, On the Soul and Its Activities.1",
-    // "Derekh Hashem, Part Three, On Divine Names and Witchcraft.1",
-    // "Derekh Hashem, Part Three, On Divine Inspiration and Prophecy.1",
-    // "Derekh Hashem, Part Three, On the Prophetic Experience.1",
-    // "Derekh Hashem, Part Three, On Moshe's Unique Status.1",
-    // "Derekh Hashem, Part Four, On Divine Service.1",
-    // "Derekh Hashem, Part Four, On Torah Study.1",
-    // "Derekh Hashem, Part Four, On Love and Fear of God.1",
-    // "Derekh Hashem, Part Four, On the Sh'ma and Its Blessings.1",
-    // "Derekh Hashem, Part Four, On Prayer.1",
-    // "Derekh Hashem, Part Four, On the Daily Order of Prayer.1",
-    // "Derekh Hashem, Part Four, On Divine Service and the Calendar.1",
-    // "Derekh Hashem, Part Four, On Seasonal Commandments.1",
-    // "Derekh Hashem, Part Four, On Blessings.1",
-  ];
-
   const fetchRandom = useCallback(async () => {
     if (selectedBook) {
       // Filter curated refs to just the selected book
@@ -448,6 +299,8 @@ export default function SeferScroll() {
   // Load next batch of cards
   const loadMore = useCallback(async () => {
     if (busy.current) return;
+    if (orderEnded && mode === "inorder") return; // Fix #3: stop loading past end of book
+    if (popularLooped && mode === "popular") return; // Fix #10: stop after full cycle
     busy.current = true;
     setLoading(true);
     setError(null);
@@ -519,14 +372,6 @@ export default function SeferScroll() {
         }
       } else {
         // ===== OTHER MODES =====
-        // Books that use daf (page) numbering instead of chapters
-        const DAF_BOOKS = new Set([
-          "Berakhot", "Shabbat", "Pesachim", "Yoma", "Sukkah", "Rosh Hashanah",
-          "Taanit", "Megillah", "Chagigah", "Sotah", "Gittin", "Kiddushin",
-          "Bava Kamma", "Bava Metzia", "Bava Batra", "Sanhedrin", "Makkot",
-          "Avodah Zarah", "Niddah",
-        ]);
-
         // Get the right starting ref for a book
         function getStartRef(book) {
           if (DAF_BOOKS.has(book)) return `${book} 2a`;
@@ -570,7 +415,8 @@ export default function SeferScroll() {
             if (mode === "random") {
               card = await fetchRandom();
             } else if (mode === "popular") {
-              const idx = (popularIdx + newCards.length) % POPULAR_REFS.length;
+              const idx = popularIdx + newCards.length;
+              if (idx >= POPULAR_REFS.length) break; // Fix #10: stop at end
               ref = POPULAR_REFS[idx];
               card = await fetchText(ref);
             } else if (mode === "inorder") {
@@ -602,16 +448,25 @@ export default function SeferScroll() {
         // Save final position to React state for the next batch
         if (mode === "inorder") orderRefCurrent.current = nextOrderRef;
 
-        if (mode === "popular") setPopularIdx(p => p + newCards.length);
+        if (mode === "popular") {
+          const nextIdx = popularIdx + newCards.length;
+          setPopularIdx(nextIdx);
+          if (nextIdx >= POPULAR_REFS.length) setPopularLooped(true);
+        }
       }
 
-      // If nothing loaded, use samples
+      // If nothing loaded, handle appropriately
       if (newCards.length === 0 && mode !== "parasha") {
-        const pool = shuffle(SAMPLE_CARDS);
-        for (let i = 0; i < count; i++) {
-          newCards.push({ ...pool[i % pool.length], id: Date.now() + Math.random() });
+        if (mode === "inorder" && orderRefCurrent.current) {
+          // Fix #3: Reached end of book — don't show samples
+          setOrderEnded(true);
+        } else {
+          const pool = shuffle(SAMPLE_CARDS);
+          for (let i = 0; i < count; i++) {
+            newCards.push({ ...pool[i % pool.length], id: Date.now() + Math.random() });
+          }
+          setError("Couldn't reach Sefaria — showing sample texts.");
         }
-        setError("Couldn't reach Sefaria — showing sample texts.");
       }
 
       setCards(prev => [...prev, ...newCards]);
@@ -619,30 +474,36 @@ export default function SeferScroll() {
       setLoading(false);
       busy.current = false;
     }
-  }, [mode, selectedBook, popularIdx, parashaLoaded, fetchText, fetchRandom]);
+  }, [mode, selectedBook, popularIdx, parashaLoaded, orderEnded, fetchText, fetchRandom]);
 
   // Reset on settings change
   useEffect(() => {
     setCards([]);
     setPopularIdx(0);
+    setPopularLooped(false);
     orderRefCurrent.current = null;
+    setOrderEnded(false);
     setError(null);
     setParashaLoaded(false);
     setParashaData(null);
     busy.current = false;
     const t = setTimeout(loadMore, 80);
     return () => clearTimeout(t);
-  }, [mode, selectedBook]);
+  }, [mode, selectedBook, resetKey]);
 
-  // Infinite scroll observer
+  // Fix #6: Keep a stable ref to loadMore so the observer isn't torn down on every state change
+  const loadMoreRef = useRef(loadMore);
+  useEffect(() => { loadMoreRef.current = loadMore; }, [loadMore]);
+
+  // Infinite scroll observer — created once, reads loadMore from ref
   useEffect(() => {
     obsRef.current?.disconnect();
     obsRef.current = new IntersectionObserver(([e]) => {
-      if (e?.isIntersecting) loadMore();
+      if (e?.isIntersecting) loadMoreRef.current();
     }, { threshold: 0.1 });
     if (sentRef.current) obsRef.current.observe(sentRef.current);
     return () => obsRef.current?.disconnect();
-  }, [loadMore]);
+  }, []); // only run once
 
   // Books available in the dropdown with Hebrew names and transliterations
   const BOOK_MENU = [
@@ -686,6 +547,7 @@ export default function SeferScroll() {
       { en: "Ecclesiastes", tr: "Kohelet", he: "קהלת" },
       { en: "Esther", tr: "Ester", he: "אסתר" },
       { en: "Daniel", tr: "Daniel", he: "דניאל" },
+      { en: "Ezra", tr: "Ezra", he: "עזרא" },
       { en: "Nehemiah", tr: "Nechemyah", he: "נחמיה" },
       { en: "I Chronicles", tr: "Divrei HaYamim Alef", he: "דברי הימים א" },
       { en: "II Chronicles", tr: "Divrei HaYamim Bet", he: "דברי הימים ב" },
@@ -714,6 +576,7 @@ export default function SeferScroll() {
             setParashaLoaded(false);
             setParashaData(null);
             setError(null);
+            setResetKey(k => k + 1);
             window.scrollTo({ top: 0, behavior: "smooth" });
           }}>
             <span style={{ fontSize: 24 }}>🌀</span>
@@ -823,7 +686,12 @@ export default function SeferScroll() {
 
       {/* ===== ABOUT CARD ===== */}
       {showAbout && (
-        <div style={{ maxWidth: 620, margin: "14px auto", padding: "0 14px", flexShrink: 0 }}>
+        <div style={{
+          maxWidth: 620, margin: viewMode === "mobile" ? "0 auto" : "14px auto",
+          padding: viewMode === "mobile" ? "20px 14px" : "0 14px",
+          flexShrink: 0,
+          ...(viewMode === "mobile" ? { flex: 1, overflow: "auto" } : {}),
+        }}>
           <div style={{
             background: "var(--bg-primary)",
             borderRadius: "var(--radius-lg)",
@@ -851,7 +719,8 @@ export default function SeferScroll() {
         </div>
       )}
 
-      {/* ===== CARD FEED ===== */}
+      {/* ===== CARD FEED ===== (hidden when About is shown in mobile) */}
+      {!(showAbout && viewMode === "mobile") && (
       <div className={`snap-feed${viewMode === "desktop" ? " view-desktop" : ""}${viewMode === "mobile" ? " view-mobile" : ""}`} style={s.feed}>
         {error && (
           <div style={s.infoBox}>{error}</div>
@@ -860,7 +729,6 @@ export default function SeferScroll() {
         {cards.map((card, idx) => {
           const cc = catColor(card.categories);
           const display = card.text || "";
-          const dir = "ltr";
           const isCalCard = card.isCalendar;
 
           return (
@@ -917,7 +785,7 @@ export default function SeferScroll() {
                     }}>
                       {card.aliyot.map((a, i) => (
                         <a key={i}
-                          href={`https://www.sefaria.org/${a.replace(/ /g, '.')}`}
+                          href={`https://www.sefaria.org/${encodeURIComponent(a)}`}
                           target="_blank" rel="noopener noreferrer"
                           style={{
                             fontSize: 12, padding: "4px 10px",
@@ -955,11 +823,13 @@ export default function SeferScroll() {
                             navigator.share({ title: card.ref, text, url: card.sefariaUrl });
                           } else {
                             navigator.clipboard?.writeText(text);
+                            setCopiedId(card.id);
+                            setTimeout(() => setCopiedId(null), 1500);
                           }
                         }}
                         style={s.shareBtn}
                       >
-                        Share
+                        {copiedId === card.id ? "Copied!" : "Share"}
                       </button>
                     </div>
                   </div>
@@ -976,7 +846,7 @@ export default function SeferScroll() {
                 )}
 
                 {/* Text body */}
-                <div className="card-text" style={s.textBody(dir)}>
+                <div className="card-text" style={s.textBody}>
                   {trunc(display || "Text not available.", 900)}
                 </div>
 
@@ -993,11 +863,13 @@ export default function SeferScroll() {
                         navigator.share({ title: card.ref, text, url: card.sefariaUrl });
                       } else {
                         navigator.clipboard?.writeText(text);
+                        setCopiedId(card.id);
+                        setTimeout(() => setCopiedId(null), 1500);
                       }
                     }}
                     style={s.shareBtn}
                   >
-                    Share
+                    {copiedId === card.id ? "Copied!" : "Share"}
                   </button>
                 </div>
                 )}
@@ -1024,9 +896,32 @@ export default function SeferScroll() {
           </div>
         )}
 
+        {/* Ordered mode: end of book message */}
+        {mode === "inorder" && orderEnded && !loading && (
+          <div style={{
+            textAlign: "center", padding: "20px 16px",
+            color: "var(--text-tertiary)", fontSize: 13,
+            borderTop: "1px solid var(--border-light)",
+          }}>
+            You've reached the end of {selectedBook || "this text"}.<br />Select another text or switch browsing modes.
+          </div>
+        )}
+
+        {/* Popular mode: end of list message */}
+        {mode === "popular" && popularLooped && !loading && (
+          <div style={{
+            textAlign: "center", padding: "20px 16px",
+            color: "var(--text-tertiary)", fontSize: 13,
+            borderTop: "1px solid var(--border-light)",
+          }}>
+            You've seen all the popular passages.<br />Switch to a different browsing mode to read more texts.
+          </div>
+        )}
+
         {/* Scroll sentinel */}
         <div ref={sentRef} style={{ height: 1 }} />
       </div>
+      )}
     </div>
   );
 }
