@@ -3,10 +3,6 @@
     {
       "source": "/sefaria-api/:path*",
       "destination": "https://www.sefaria.org/api/:path*"
-    },
-    {
-      "source": "/hebcal/:path*",
-      "destination": "https://www.hebcal.com/:path*"
     }
   ]
 }
