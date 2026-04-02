@@ -1,22 +1,21 @@
 {
-  "name": "seferscroll",
-  "private": true,
-  "version": "1.0.0",
+  "name": "hearing-loss-simulator",
+  "version": "2.1.0",
+  "description": "Clinically-informed hearing loss simulator with AudioWorklet processing and shareable profiles",
   "type": "module",
-  "description": "An infinite-scroll browser for Jewish texts powered by the Sefaria API",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview"
   },
   "dependencies": {
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "buffer": "^6.0.3",
+    "qrcode": "^1.5.3",
+    "react": "^18.3.0",
+    "react-dom": "^18.3.0"
   },
   "devDependencies": {
-    "@types/react": "^18.3.12",
-    "@types/react-dom": "^18.3.1",
-    "@vitejs/plugin-react": "^4.3.4",
+    "@vitejs/plugin-react": "^4.3.0",
     "vite": "^6.0.0"
   }
 }
