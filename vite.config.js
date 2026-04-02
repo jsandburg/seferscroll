@@ -10,11 +10,6 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/sefaria-api/, '/api'),
       },
-      '/hebcal': {
-        target: 'https://www.hebcal.com',
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/hebcal/, ''),
-      },
     },
   },
 })
