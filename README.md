@@ -1,6 +1,6 @@
 # 🌀 SeferScroll
 
-An infinite-scroll browser for the Tanakh, powered by the [Sefaria API](https://developers.sefaria.org/).
+An infinite-scroll browser for Jewish texts, powered by the [Sefaria API](https://developers.sefaria.org/).
 
 Inspired by [WikiTok](https://github.com/IsaacGemal/wikitok).
 
@@ -8,11 +8,12 @@ In memory of the lovely Mahla Shaebanyan-Bady (1980–2023), who was neither Jew
 
 (Thanks, Claude.)
 
-## How It Works
+## Browsing Modes
 
-SeferScroll presents chapters from the Tanakh in random order — no algorithm, no curation, no sequence. Each scroll is a draw from the complete 929 chapters of the Hebrew Bible. This is a modern form of *goral*, the ancient practice of seeking meaning through the opening of a text at random.
-
-Optionally narrow the draw to a single book using the Book selector in Settings.
+- **Random** — Draws from all 929 chapters across the complete Tanakh. Select a specific book to randomize within it. Suitable for goral.
+- **Ordered** — Reads through a text sequentially from beginning to end, chapter by chapter. Detects end of book and notifies you when there are no more chapters.
+- **Parasha** — Shows this week's Torah portion, Haftarah, and daily study portions via the Sefaria Calendars API. Displays the current Hebrew date from Hebcal.
+- **Popular** — Curated collection of well-known passages from across Jewish literature, including Psalms 23, the Shema, Pirkei Avot, Hillel's golden rule, Ecclesiastes 3, and others.
 
 ## Text Selection
 
@@ -26,19 +27,22 @@ The book dropdown includes every book of the Tanakh, each shown with English nam
 
 - Mobile snap scroll — full-screen swipeable cards on screens 1024px or narrower
 - Desktop scroll — traditional card feed on wider screens
-- Mobile/Desktop toggle in Settings to override auto-detection
+- Mobile/Desktop toggle in settings to override auto-detection
 - Light and dark mode (auto-detects system preference, manual toggle available)
 - Color-coded category indicators on each text card
 - Footnotes and reference markers automatically stripped for clean reading
 - "Read with original Hebrew on Sefaria" link (mobile: linked from the book name; desktop: in card footer)
-- Share button with clipboard feedback ("Copied!" confirmation)
+- Share button with clipboard feedback ("Copied!" confirmation on desktop)
+- About page with links to Sefaria, Hebcal, and GitHub
 - Built-in sample texts as fallback when the API can't be reached
+- Mobile-friendly responsive design
 
 ## Tech Stack
 
 - React 18
 - Vite
 - Sefaria API (no key required)
+- Hebcal API (Hebrew date conversion)
 - Vercel (hosting + API proxy to handle CORS)
 
 ## Quick Start (Local Development)
@@ -57,11 +61,11 @@ npm run dev
 
 4. Open http://localhost:5173 in your browser
 
-The Vite dev server includes a proxy that forwards `/sefaria-api/` requests to the Sefaria API, so everything works locally without CORS issues.
+The Vite dev server includes proxies that forward `/sefaria-api/` and `/hebcal/` requests to their respective APIs, so everything works locally without CORS issues.
 
 ## Deploy to Vercel
 
-See the DEPLOY_GUIDE.md file for detailed step-by-step instructions. The `vercel.json` file includes a rewrite rule that proxies API requests through your Vercel domain to avoid browser CORS restrictions.
+See the DEPLOY_GUIDE.md file for detailed step-by-step instructions. The `vercel.json` file includes rewrite rules that proxy API requests through your Vercel domain to avoid browser CORS restrictions.
 
 ## Disclaimer
 
