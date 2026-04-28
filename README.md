@@ -33,6 +33,7 @@ The book dropdown includes every book of the Tanakh, each shown with English nam
 - "Read with original Hebrew on Sefaria" link (mobile: linked from the book name; desktop: in card footer)
 - Share button with clipboard feedback ("Copied!" confirmation)
 - Built-in sample texts as fallback when the API can't be reached
+- Cards fetched in parallel for faster initial load
 
 ## Tech Stack
 
