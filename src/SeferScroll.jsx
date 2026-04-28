@@ -80,6 +80,54 @@ const ALL_TANAKH_REFS = Object.entries(TANAKH_BOOKS).flatMap(
   ([book, chapters]) => Array.from({ length: chapters }, (_, i) => `${book} ${i + 1}`)
 );
 
+const BOOK_MENU = [
+  { cat: "Torah — תורה", books: [
+    { en: "Genesis", tr: "Bereshit", he: "בראשית" },
+    { en: "Exodus", tr: "Shemot", he: "שמות" },
+    { en: "Leviticus", tr: "Vayikra", he: "ויקרא" },
+    { en: "Numbers", tr: "Bamidbar", he: "במדבר" },
+    { en: "Deuteronomy", tr: "Devarim", he: "דברים" },
+  ]},
+  { cat: "Prophets — Nevi'im — נביאים", books: [
+    { en: "Joshua", tr: "Yehoshua", he: "יהושע" },
+    { en: "Judges", tr: "Shoftim", he: "שופטים" },
+    { en: "I Samuel", tr: "Shmuel Alef", he: "שמואל א" },
+    { en: "II Samuel", tr: "Shmuel Bet", he: "שמואל ב" },
+    { en: "I Kings", tr: "Melakhim Alef", he: "מלכים א" },
+    { en: "II Kings", tr: "Melakhim Bet", he: "מלכים ב" },
+    { en: "Isaiah", tr: "Yeshayahu", he: "ישעיהו" },
+    { en: "Jeremiah", tr: "Yirmiyahu", he: "ירמיהו" },
+    { en: "Ezekiel", tr: "Yechezkel", he: "יחזקאל" },
+    { en: "Hosea", tr: "Hoshea", he: "הושע" },
+    { en: "Joel", tr: "Yoel", he: "יואל" },
+    { en: "Amos", tr: "Amos", he: "עמוס" },
+    { en: "Obadiah", tr: "Ovadiah", he: "עובדיה" },
+    { en: "Jonah", tr: "Yonah", he: "יונה" },
+    { en: "Micah", tr: "Mikhah", he: "מיכה" },
+    { en: "Nahum", tr: "Nachum", he: "נחום" },
+    { en: "Habakkuk", tr: "Chavakuk", he: "חבקוק" },
+    { en: "Zephaniah", tr: "Tzefaniah", he: "צפניה" },
+    { en: "Haggai", tr: "Chaggai", he: "חגי" },
+    { en: "Zechariah", tr: "Zekharyah", he: "זכריה" },
+    { en: "Malachi", tr: "Malakhi", he: "מלאכי" },
+  ]},
+  { cat: "Writings — Ketuvim — כתובים", books: [
+    { en: "Psalms", tr: "Tehillim", he: "תהילים" },
+    { en: "Proverbs", tr: "Mishlei", he: "משלי" },
+    { en: "Job", tr: "Iyyov", he: "איוב" },
+    { en: "Song of Songs", tr: "Shir HaShirim", he: "שיר השירים" },
+    { en: "Ruth", tr: "Rut", he: "רות" },
+    { en: "Lamentations", tr: "Eikhah", he: "איכה" },
+    { en: "Ecclesiastes", tr: "Kohelet", he: "קהלת" },
+    { en: "Esther", tr: "Ester", he: "אסתר" },
+    { en: "Daniel", tr: "Daniel", he: "דניאל" },
+    { en: "Ezra", tr: "Ezra", he: "עזרא" },
+    { en: "Nehemiah", tr: "Nechemyah", he: "נחמיה" },
+    { en: "I Chronicles", tr: "Divrei HaYamim Alef", he: "דברי הימים א" },
+    { en: "II Chronicles", tr: "Divrei HaYamim Bet", he: "דברי הימים ב" },
+  ]},
+];
+
 // Styles object — keeps JSX clean
 const s = {
   page: { minHeight: "100vh", fontFamily: "var(--font-body)", display: "flex", flexDirection: "column" },
@@ -199,7 +247,6 @@ export default function SeferScroll() {
       const t = flatText(v.text);
       if (!text && t) text = t;
     }
-    if (!text && data.versions?.[0]) text = flatText(data.versions[0].text);
     return {
       ref: data.ref || ref,
       heRef: data.heRef || "",
@@ -228,15 +275,13 @@ export default function SeferScroll() {
     const newCards = [];
 
     try {
-      for (let i = 0; i < 3; i++) {
-        try {
-          const ref = pickRandomRef();
-          const card = await fetchText(ref);
-          if (card && card.text) {
-            newCards.push({ ...card, id: Date.now() + Math.random() });
-          }
-        } catch (e) {
-          console.warn("Skipping card:", e.message);
+      const refs = [pickRandomRef(), pickRandomRef(), pickRandomRef()];
+      const results = await Promise.allSettled(refs.map(fetchText));
+      for (const r of results) {
+        if (r.status === "fulfilled" && r.value?.text) {
+          newCards.push({ ...r.value, id: Date.now() + Math.random() });
+        } else if (r.status === "rejected") {
+          console.warn("Skipping card:", r.reason?.message);
         }
       }
 
@@ -261,7 +306,7 @@ export default function SeferScroll() {
     setCards([]);
     setError(null);
     busy.current = false;
-    const t = setTimeout(loadMore, 80);
+    const t = setTimeout(() => loadMoreRef.current(), 80);
     return () => clearTimeout(t);
   }, [selectedBook, resetKey]);
 
@@ -278,54 +323,6 @@ export default function SeferScroll() {
     if (sentRef.current) obsRef.current.observe(sentRef.current);
     return () => obsRef.current?.disconnect();
   }, []);
-
-  const BOOK_MENU = [
-    { cat: "Torah — תורה", books: [
-      { en: "Genesis", tr: "Bereshit", he: "בראשית" },
-      { en: "Exodus", tr: "Shemot", he: "שמות" },
-      { en: "Leviticus", tr: "Vayikra", he: "ויקרא" },
-      { en: "Numbers", tr: "Bamidbar", he: "במדבר" },
-      { en: "Deuteronomy", tr: "Devarim", he: "דברים" },
-    ]},
-    { cat: "Prophets — Nevi'im — נביאים", books: [
-      { en: "Joshua", tr: "Yehoshua", he: "יהושע" },
-      { en: "Judges", tr: "Shoftim", he: "שופטים" },
-      { en: "I Samuel", tr: "Shmuel Alef", he: "שמואל א" },
-      { en: "II Samuel", tr: "Shmuel Bet", he: "שמואל ב" },
-      { en: "I Kings", tr: "Melakhim Alef", he: "מלכים א" },
-      { en: "II Kings", tr: "Melakhim Bet", he: "מלכים ב" },
-      { en: "Isaiah", tr: "Yeshayahu", he: "ישעיהו" },
-      { en: "Jeremiah", tr: "Yirmiyahu", he: "ירמיהו" },
-      { en: "Ezekiel", tr: "Yechezkel", he: "יחזקאל" },
-      { en: "Hosea", tr: "Hoshea", he: "הושע" },
-      { en: "Joel", tr: "Yoel", he: "יואל" },
-      { en: "Amos", tr: "Amos", he: "עמוס" },
-      { en: "Obadiah", tr: "Ovadiah", he: "עובדיה" },
-      { en: "Jonah", tr: "Yonah", he: "יונה" },
-      { en: "Micah", tr: "Mikhah", he: "מיכה" },
-      { en: "Nahum", tr: "Nachum", he: "נחום" },
-      { en: "Habakkuk", tr: "Chavakuk", he: "חבקוק" },
-      { en: "Zephaniah", tr: "Tzefaniah", he: "צפניה" },
-      { en: "Haggai", tr: "Chaggai", he: "חגי" },
-      { en: "Zechariah", tr: "Zekharyah", he: "זכריה" },
-      { en: "Malachi", tr: "Malakhi", he: "מלאכי" },
-    ]},
-    { cat: "Writings — Ketuvim — כתובים", books: [
-      { en: "Psalms", tr: "Tehillim", he: "תהילים" },
-      { en: "Proverbs", tr: "Mishlei", he: "משלי" },
-      { en: "Job", tr: "Iyyov", he: "איוב" },
-      { en: "Song of Songs", tr: "Shir HaShirim", he: "שיר השירים" },
-      { en: "Ruth", tr: "Rut", he: "רות" },
-      { en: "Lamentations", tr: "Eikhah", he: "איכה" },
-      { en: "Ecclesiastes", tr: "Kohelet", he: "קהלת" },
-      { en: "Esther", tr: "Ester", he: "אסתר" },
-      { en: "Daniel", tr: "Daniel", he: "דניאל" },
-      { en: "Ezra", tr: "Ezra", he: "עזרא" },
-      { en: "Nehemiah", tr: "Nechemyah", he: "נחמיה" },
-      { en: "I Chronicles", tr: "Divrei HaYamim Alef", he: "דברי הימים א" },
-      { en: "II Chronicles", tr: "Divrei HaYamim Bet", he: "דברי הימים ב" },
-    ]},
-  ];
 
   return (
     <div style={{
