@@ -10,7 +10,7 @@ In memory of the lovely Mahla Shaebanyan-Bady (1980–2023), who was neither Jew
 
 ## How It Works
 
-SeferScroll presents chapters from the Tanakh in random order — no algorithm, no curation, no sequence. Each scroll is a draw from the complete 929 chapters of the Hebrew Bible. This is a modern form of *goral*, the ancient practice of seeking meaning through the opening of a text at random.
+SeferScroll presents chapters from the Tanakh in random order. There is no algorithm, no curation, no sequence. Each scroll is a draw from the complete 929 chapters of the Tanakh, the Hebrew Bible. This is a modern form of *goral*, the ancient practice of seeking meaning through the opening of a text at random (typically Tehillim/Psalms).
 
 Optionally narrow the draw to a single book using the Book selector in Settings.
 
