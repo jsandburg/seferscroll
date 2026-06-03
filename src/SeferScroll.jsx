@@ -44,6 +44,11 @@ function stripHtml(h) {
     .trim();
 }
 
+// Strip Hebrew Unicode characters that Sefaria inlines into English text (e.g. acrostic markers)
+function cleanVerse(t) {
+  return t.replace(/[֐-׿יִ-פֿ]+/g, "").replace(/\s{2,}/g, " ").trim();
+}
+
 function shareVerse(card, setCopiedId) {
   const text = `${card.ref}\n\n${card.text}\n\n${card.sefariaUrl}`;
   if (navigator.share) {
@@ -176,8 +181,8 @@ export default function SeferScroll() {
       const raw = Array.isArray(v.text) ? v.text : [v.text];
       verses = raw.flatMap(t =>
         Array.isArray(t)
-          ? t.filter(s => typeof s === "string").map(stripHtml).filter(Boolean)
-          : typeof t === "string" ? [stripHtml(t)].filter(Boolean) : []
+          ? t.filter(s => typeof s === "string").map(stripHtml).map(cleanVerse).filter(Boolean)
+          : typeof t === "string" ? [cleanVerse(stripHtml(t))].filter(Boolean) : []
       );
       if (verses.length > 0) break;
     }
