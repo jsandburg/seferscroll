@@ -1,6 +1,6 @@
 # 🌀 SeferScroll
 
-An infinite-scroll browser for the Tanakh, powered by the [Sefaria API](https://developers.sefaria.org/).
+A random infinite-scroll browser for Tehillim/Psalms, powered by the [Sefaria API](https://developers.sefaria.org/).
 
 Inspired by [WikiTok](https://github.com/IsaacGemal/wikitok).
 
@@ -10,30 +10,18 @@ In memory of the lovely Mahla Shaebanyan-Bady (1980–2023), who was neither Jew
 
 ## How It Works
 
-SeferScroll presents chapters from the Tanakh in random order. There is no algorithm, no curation, no sequence. Each scroll is a draw from the complete 929 chapters of the Tanakh, the Hebrew Bible. This is a modern form of *goral*, the ancient practice of seeking meaning through the opening of a text at random (typically Tehillim/Psalms).
-
-Optionally narrow the draw to a single book using the Book selector in Settings.
-
-## Text Selection
-
-The book dropdown includes every book of the Tanakh, each shown with English name, transliteration, and Hebrew:
-
-- **Torah — תורה** — Genesis (Bereshit) through Deuteronomy (Devarim)
-- **Prophets — Nevi'im — נביאים** — Joshua through Malachi (21 books)
-- **Writings — Ketuvim — כתובים** — Psalms through II Chronicles (13 books, including Ezra)
+SeferScroll presents individual verses from Tehillim (Psalms) in random order. There is no algorithm, no curation, no sequence. Each scroll is a draw from the 150 psalms of the Hebrew Bible. This is a modern form of *goral*, the ancient practice of seeking meaning through the opening of a text at random.
 
 ## Features
 
-- Mobile snap scroll — full-screen swipeable cards on screens 1024px or narrower
-- Desktop scroll — traditional card feed on wider screens
-- Mobile/Desktop toggle in Settings to override auto-detection
-- Light and dark mode (auto-detects system preference, manual toggle available)
-- Color-coded category indicators on each text card
+- Mobile snap scroll — full-screen swipeable cards on screens 768px or narrower, auto-detected
+- Desktop scroll — traditional card feed on wider screens, auto-detected
+- Light and dark mode — follows system preference automatically
 - Footnotes and reference markers automatically stripped for clean reading
-- "Read with original Hebrew on Sefaria" link (mobile: linked from the book name; desktop: in card footer)
+- "Read more" link to the verse on Sefaria (mobile); "Read on Sefaria" link in card footer (desktop)
 - Share button with clipboard feedback ("Copied!" confirmation)
-- Built-in sample texts as fallback when the API can't be reached
-- Cards fetched in parallel for faster initial load
+- Built-in sample verses as fallback when the API can't be reached
+- Verses fetched in parallel for faster load
 
 ## Tech Stack
 
