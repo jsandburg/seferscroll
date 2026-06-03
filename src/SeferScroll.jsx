@@ -246,7 +246,7 @@ export default function SeferScroll() {
   return (
     <div style={{
       ...s.page,
-      ...(viewMode === "mobile" ? { height: "100vh", overflow: "hidden" } : {}),
+      ...(viewMode === "mobile" ? { position: "fixed", inset: 0, overflow: "hidden" } : {}),
     }}>
       {/* ===== HEADER ===== */}
       <div style={s.header}>
