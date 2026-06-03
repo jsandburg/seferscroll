@@ -1,45 +1,40 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 
-// Use Vercel proxy to avoid CORS issues in production.
-// In local dev, Vite's proxy handles the rewrite (see vite.config.js).
 const API = "/sefaria-api";
 
-// Fallback texts for initial load / error states
-const SAMPLE_CARDS = [
-  { ref: "Genesis 1:1-5", heRef: "בראשית א׳:א׳-ה׳", text: "In the beginning God created the heaven and the earth. Now the earth was unformed and void, and darkness was upon the face of the deep; and the spirit of God hovered over the face of the waters. And God said: 'Let there be light.' And there was light. And God saw the light, that it was good; and God divided the light from the darkness. And God called the light Day, and the darkness He called Night. And there was evening and there was morning, one day.", categories: ["Tanakh", "Torah", "Genesis"], sefariaUrl: "https://www.sefaria.org/Genesis.1.1-5" },
-  { ref: "Psalms 23", heRef: "תהילים כ״ג", text: "A Psalm of David. The LORD is my shepherd; I shall not want. He maketh me to lie down in green pastures; He leadeth me beside the still waters. He restoreth my soul; He guideth me in straight paths for His name's sake. Yea, though I walk through the valley of the shadow of death, I will fear no evil, for Thou art with me; Thy rod and Thy staff, they comfort me.", categories: ["Tanakh", "Writings", "Psalms"], sefariaUrl: "https://www.sefaria.org/Psalms.23" },
-  { ref: "Ecclesiastes 3:1-8", heRef: "קהלת ג׳:א׳-ח׳", text: "To every thing there is a season, and a time to every purpose under the heaven: A time to be born, and a time to die; a time to plant, and a time to pluck up that which is planted; A time to kill, and a time to heal; a time to break down, and a time to build up; A time to weep, and a time to laugh; a time to mourn, and a time to dance.", categories: ["Tanakh", "Writings", "Ecclesiastes"], sefariaUrl: "https://www.sefaria.org/Ecclesiastes.3.1-8" },
+const SAMPLE_VERSES = [
+  {
+    ref: "Psalms 23:1", heRef: "תהילים כ״ג",
+    text: "The LORD is my shepherd; I shall not want.",
+    sefariaUrl: "https://www.sefaria.org/Psalms.23.1",
+  },
+  {
+    ref: "Psalms 27:1", heRef: "תהילים כ״ז",
+    text: "The LORD is my light and my salvation; whom shall I fear? The LORD is the stronghold of my life; of whom shall I be afraid?",
+    sefariaUrl: "https://www.sefaria.org/Psalms.27.1",
+  },
+  {
+    ref: "Psalms 121:1", heRef: "תהילים קכ״א",
+    text: "I will lift up mine eyes unto the mountains: from whence shall my help come?",
+    sefariaUrl: "https://www.sefaria.org/Psalms.121.1",
+  },
 ];
 
-const CAT_COLORS = {
-  Tanakh: "#1D9E75", Mishnah: "#D85A30", Talmud: "#378ADD",
-  Midrash: "#D4537E", Halakhah: "#639922", Kabbalah: "#534AB7",
-  Liturgy: "#BA7517", "Jewish Thought": "#854F0B", Tosefta: "#993556",
-  Chasidut: "#7F77DD", Musar: "#5DCAA5", Responsa: "#888780",
-  "Second Temple": "#185FA5",
-};
-
-function catColor(cats) {
-  for (const c of (cats || [])) if (CAT_COLORS[c]) return CAT_COLORS[c];
-  return "#888780";
-}
+const PSALMS_COLOR = "#1D9E75";
 
 function stripHtml(h) {
   if (!h) return "";
   const d = document.createElement("div");
   d.innerHTML = h;
-  // Remove all footnote/annotation elements via DOM (handles nesting correctly)
   d.querySelectorAll([
-    'sup',
-    'i.footnote', 'span.footnote', 'a.footnote',
-    '.footnote', '.footnote-marker', '.note', '.refLink',
-    '.tooltip', '.itag', '.mfootnote', '.nfootnote',
-    'sup.fn', '[class*="footnote"]', '.note-callout', '.note-content',
-  ].join(', ')).forEach(el => el.remove());
-  // Convert block elements and <br> to newlines
-  d.querySelectorAll('br').forEach(el => el.replaceWith('\n'));
-  d.querySelectorAll('p, div, h1, h2, h3, h4, h5, h6').forEach(el => {
-    el.insertAdjacentText('afterend', '\n');
+    "sup", "i.footnote", "span.footnote", "a.footnote",
+    ".footnote", ".footnote-marker", ".note", ".refLink",
+    ".tooltip", ".itag", ".mfootnote", ".nfootnote",
+    "sup.fn", '[class*="footnote"]', ".note-callout", ".note-content",
+  ].join(", ")).forEach(el => el.remove());
+  d.querySelectorAll("br").forEach(el => el.replaceWith("\n"));
+  d.querySelectorAll("p, div, h1, h2, h3, h4, h5, h6").forEach(el => {
+    el.insertAdjacentText("afterend", "\n");
   });
   return (d.textContent || "")
     .replace(/[ \t]+/g, " ")
@@ -49,86 +44,18 @@ function stripHtml(h) {
     .trim();
 }
 
-function flatText(t) {
-  if (!t) return "";
-  if (typeof t === "string") return stripHtml(t);
-  if (Array.isArray(t)) return t.map(flatText).filter(Boolean).join("\n");
-  return "";
+function shareVerse(card, setCopiedId) {
+  const text = `${card.ref}\n\n${card.text}\n\n${card.sefariaUrl}`;
+  if (navigator.share) {
+    navigator.share({ title: card.ref, text, url: card.sefariaUrl }).catch(() => {});
+  } else {
+    navigator.clipboard?.writeText(text).then(() => {
+      setCopiedId(card.id);
+      setTimeout(() => setCopiedId(null), 1500);
+    }).catch(() => {});
+  }
 }
 
-function trunc(t, m = 800) {
-  return t.length <= m ? t : t.slice(0, m).replace(/\s+\S*$/, "") + "…";
-}
-
-// Chapter counts for every Tanakh book (all 929 chapters)
-const TANAKH_BOOKS = {
-  // Torah
-  "Genesis": 50, "Exodus": 40, "Leviticus": 27, "Numbers": 36, "Deuteronomy": 34,
-  // Nevi'im
-  "Joshua": 24, "Judges": 21, "I Samuel": 31, "II Samuel": 24,
-  "I Kings": 22, "II Kings": 25, "Isaiah": 66, "Jeremiah": 52, "Ezekiel": 48,
-  "Hosea": 14, "Joel": 4, "Amos": 9, "Obadiah": 1, "Jonah": 4, "Micah": 7,
-  "Nahum": 3, "Habakkuk": 3, "Zephaniah": 3, "Haggai": 2, "Zechariah": 14, "Malachi": 3,
-  // Ketuvim
-  "Psalms": 150, "Proverbs": 31, "Job": 42, "Song of Songs": 8, "Ruth": 4,
-  "Lamentations": 5, "Ecclesiastes": 12, "Esther": 10, "Daniel": 12,
-  "Ezra": 10, "Nehemiah": 13, "I Chronicles": 29, "II Chronicles": 36,
-};
-
-// All chapter refs across the complete Tanakh
-const ALL_TANAKH_REFS = Object.entries(TANAKH_BOOKS).flatMap(
-  ([book, chapters]) => Array.from({ length: chapters }, (_, i) => `${book} ${i + 1}`)
-);
-
-const BOOK_MENU = [
-  { cat: "Torah — תורה", books: [
-    { en: "Genesis", tr: "Bereshit", he: "בראשית" },
-    { en: "Exodus", tr: "Shemot", he: "שמות" },
-    { en: "Leviticus", tr: "Vayikra", he: "ויקרא" },
-    { en: "Numbers", tr: "Bamidbar", he: "במדבר" },
-    { en: "Deuteronomy", tr: "Devarim", he: "דברים" },
-  ]},
-  { cat: "Prophets — Nevi'im — נביאים", books: [
-    { en: "Joshua", tr: "Yehoshua", he: "יהושע" },
-    { en: "Judges", tr: "Shoftim", he: "שופטים" },
-    { en: "I Samuel", tr: "Shmuel Alef", he: "שמואל א" },
-    { en: "II Samuel", tr: "Shmuel Bet", he: "שמואל ב" },
-    { en: "I Kings", tr: "Melakhim Alef", he: "מלכים א" },
-    { en: "II Kings", tr: "Melakhim Bet", he: "מלכים ב" },
-    { en: "Isaiah", tr: "Yeshayahu", he: "ישעיהו" },
-    { en: "Jeremiah", tr: "Yirmiyahu", he: "ירמיהו" },
-    { en: "Ezekiel", tr: "Yechezkel", he: "יחזקאל" },
-    { en: "Hosea", tr: "Hoshea", he: "הושע" },
-    { en: "Joel", tr: "Yoel", he: "יואל" },
-    { en: "Amos", tr: "Amos", he: "עמוס" },
-    { en: "Obadiah", tr: "Ovadiah", he: "עובדיה" },
-    { en: "Jonah", tr: "Yonah", he: "יונה" },
-    { en: "Micah", tr: "Mikhah", he: "מיכה" },
-    { en: "Nahum", tr: "Nachum", he: "נחום" },
-    { en: "Habakkuk", tr: "Chavakuk", he: "חבקוק" },
-    { en: "Zephaniah", tr: "Tzefaniah", he: "צפניה" },
-    { en: "Haggai", tr: "Chaggai", he: "חגי" },
-    { en: "Zechariah", tr: "Zekharyah", he: "זכריה" },
-    { en: "Malachi", tr: "Malakhi", he: "מלאכי" },
-  ]},
-  { cat: "Writings — Ketuvim — כתובים", books: [
-    { en: "Psalms", tr: "Tehillim", he: "תהילים" },
-    { en: "Proverbs", tr: "Mishlei", he: "משלי" },
-    { en: "Job", tr: "Iyyov", he: "איוב" },
-    { en: "Song of Songs", tr: "Shir HaShirim", he: "שיר השירים" },
-    { en: "Ruth", tr: "Rut", he: "רות" },
-    { en: "Lamentations", tr: "Eikhah", he: "איכה" },
-    { en: "Ecclesiastes", tr: "Kohelet", he: "קהלת" },
-    { en: "Esther", tr: "Ester", he: "אסתר" },
-    { en: "Daniel", tr: "Daniel", he: "דניאל" },
-    { en: "Ezra", tr: "Ezra", he: "עזרא" },
-    { en: "Nehemiah", tr: "Nechemyah", he: "נחמיה" },
-    { en: "I Chronicles", tr: "Divrei HaYamim Alef", he: "דברי הימים א" },
-    { en: "II Chronicles", tr: "Divrei HaYamim Bet", he: "דברי הימים ב" },
-  ]},
-];
-
-// Styles object — keeps JSX clean
 const s = {
   page: { minHeight: "100vh", fontFamily: "var(--font-body)", display: "flex", flexDirection: "column" },
   header: {
@@ -143,24 +70,13 @@ const s = {
   headerInner: { display: "flex", alignItems: "center", justifyContent: "space-between", maxWidth: 620, margin: "0 auto" },
   logo: { display: "flex", alignItems: "center", gap: 10 },
   logoText: { fontSize: 20, fontWeight: 600, color: "var(--text-primary)", letterSpacing: "-0.03em" },
-  settingsBtn: (active) => ({
+  aboutBtn: (active) => ({
     background: active ? "var(--bg-secondary)" : "transparent",
     border: "1px solid var(--border-medium)",
     borderRadius: "var(--radius-md)", padding: "7px 14px",
     cursor: "pointer", fontSize: 13, color: "var(--text-secondary)",
-    display: "flex", alignItems: "center", gap: 5,
     transition: "background 0.15s",
   }),
-  panel: { maxWidth: 620, margin: "14px auto 6px", display: "flex", flexDirection: "column", gap: 14 },
-  label: { fontSize: 11, color: "var(--text-tertiary)", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.06em", fontWeight: 500 },
-  select: {
-    width: "100%", padding: "9px 12px",
-    border: "1px solid var(--border-medium)",
-    borderRadius: "var(--radius-md)",
-    background: "var(--bg-secondary)",
-    color: "var(--text-primary)", fontSize: 14, cursor: "pointer",
-    fontFamily: "var(--font-body)",
-  },
   feed: { maxWidth: 620, margin: "0 auto", padding: "14px 14px 100px", display: "flex", flexDirection: "column", gap: 14 },
   card: (delay) => ({
     background: "var(--bg-primary)",
@@ -168,19 +84,19 @@ const s = {
     border: "1px solid var(--border-light)",
     boxShadow: "var(--shadow-card)",
     overflow: "hidden",
-    animation: `fadeSlideIn 0.45s ease-out both`,
+    animation: "fadeSlideIn 0.45s ease-out both",
     animationDelay: `${delay}s`,
     transition: "box-shadow 0.2s",
   }),
   cardBody: { padding: "18px 22px" },
-  cardHeader: { display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 14, gap: 12 },
+  cardHeader: { display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 14 },
   ref: { fontSize: 17, fontWeight: 600, color: "var(--text-primary)", lineHeight: 1.3 },
   heRef: { fontSize: 14, color: "var(--text-secondary)", direction: "rtl", marginTop: 3, fontFamily: "var(--font-hebrew)" },
-  catPill: (color) => ({ fontSize: 11, color, background: `${color}18`, padding: "3px 10px", borderRadius: 20, whiteSpace: "nowrap", fontWeight: 500 }),
   textBody: {
-    fontSize: 16, lineHeight: 1.8, color: "var(--text-primary)",
+    fontSize: 16, lineHeight: 1.9, color: "var(--text-primary)",
     fontFamily: "var(--font-body)",
     whiteSpace: "pre-wrap",
+    marginTop: 14,
   },
   footer: {
     display: "flex", justifyContent: "space-between", alignItems: "center",
@@ -213,15 +129,13 @@ const s = {
 export default function SeferScroll() {
   const [cards, setCards] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [showSettings, setShowSettings] = useState(false);
-  const [selectedBook, setSelectedBook] = useState("");
   const [error, setError] = useState(null);
   const [theme, setTheme] = useState(() => {
     if (typeof window !== "undefined" && window.matchMedia("(prefers-color-scheme: dark)").matches) return "dark";
     return "light";
   });
   const [viewMode, setViewMode] = useState(() => {
-    if (typeof window !== "undefined") return window.innerWidth <= 1024 ? "mobile" : "desktop";
+    if (typeof window !== "undefined") return window.innerWidth <= 768 ? "mobile" : "desktop";
     return "mobile";
   });
   const [showAbout, setShowAbout] = useState(false);
@@ -231,90 +145,95 @@ export default function SeferScroll() {
   const obsRef = useRef(null);
   const sentRef = useRef(null);
 
-  // Apply theme to document
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
   }, [theme]);
 
-  // Fetch a single text from the API (v3)
-  const fetchText = useCallback(async (ref) => {
-    const url = `${API}/v3/texts/${encodeURIComponent(ref)}?version=english`;
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-color-scheme: dark)");
+    const handler = (e) => setTheme(e.matches ? "dark" : "light");
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+
+  useEffect(() => {
+    const handler = () => setViewMode(window.innerWidth <= 768 ? "mobile" : "desktop");
+    window.addEventListener("resize", handler);
+    return () => window.removeEventListener("resize", handler);
+  }, []);
+
+  // Fetch a random chapter, then return one random verse from it
+  const fetchRandomPsalmVerse = useCallback(async () => {
+    const chapter = Math.floor(Math.random() * 150) + 1;
+    const url = `${API}/v3/texts/${encodeURIComponent(`Psalms ${chapter}`)}?version=english`;
     const res = await fetch(url);
-    if (!res.ok) throw new Error(`API error ${res.status} for ${ref}`);
+    if (!res.ok) throw new Error(`API error ${res.status}`);
     const data = await res.json();
-    let text = "";
+
+    let verses = [];
     for (const v of (data.versions || [])) {
-      const t = flatText(v.text);
-      if (!text && t) text = t;
+      if (!v.text) continue;
+      const raw = Array.isArray(v.text) ? v.text : [v.text];
+      verses = raw.flatMap(t =>
+        Array.isArray(t)
+          ? t.filter(s => typeof s === "string").map(stripHtml).filter(Boolean)
+          : typeof t === "string" ? [stripHtml(t)].filter(Boolean) : []
+      );
+      if (verses.length > 0) break;
     }
+    if (verses.length === 0) throw new Error("No verses in chapter");
+
+    const idx = Math.floor(Math.random() * verses.length);
     return {
-      ref: data.ref || ref,
+      ref: `Psalms ${chapter}:${idx + 1}`,
       heRef: data.heRef || "",
-      text,
-      categories: data.categories || [],
-      sefariaUrl: `https://www.sefaria.org/${encodeURIComponent(ref)}`,
+      text: verses[idx],
+      sefariaUrl: `https://www.sefaria.org/Psalms.${chapter}.${idx + 1}`,
     };
   }, []);
 
-  // Pick a random chapter ref, optionally filtered to a specific book
-  const pickRandomRef = useCallback(() => {
-    if (selectedBook) {
-      const bookRefs = ALL_TANAKH_REFS.filter(r => r.startsWith(selectedBook + " "));
-      if (bookRefs.length > 0) return bookRefs[Math.floor(Math.random() * bookRefs.length)];
-    }
-    return ALL_TANAKH_REFS[Math.floor(Math.random() * ALL_TANAKH_REFS.length)];
-  }, [selectedBook]);
-
-  // Load next batch of cards
   const loadMore = useCallback(async () => {
     if (busy.current) return;
     busy.current = true;
     setLoading(true);
     setError(null);
-
     const newCards = [];
-
     try {
-      const refs = [pickRandomRef(), pickRandomRef(), pickRandomRef()];
-      const results = await Promise.allSettled(refs.map(fetchText));
+      const results = await Promise.allSettled([
+        fetchRandomPsalmVerse(),
+        fetchRandomPsalmVerse(),
+        fetchRandomPsalmVerse(),
+      ]);
       for (const r of results) {
         if (r.status === "fulfilled" && r.value?.text) {
           newCards.push({ ...r.value, id: Date.now() + Math.random() });
-        } else if (r.status === "rejected") {
-          console.warn("Skipping card:", r.reason?.message);
         }
       }
-
       if (newCards.length === 0) {
-        // Fallback to sample texts when API is unreachable
-        const pool = [...SAMPLE_CARDS].sort(() => Math.random() - 0.5);
+        const pool = [...SAMPLE_VERSES].sort(() => Math.random() - 0.5);
         for (let i = 0; i < 3; i++) {
           newCards.push({ ...pool[i % pool.length], id: Date.now() + Math.random() });
         }
-        setError("Couldn't reach Sefaria — showing sample texts.");
+        setError("Couldn't reach Sefaria — showing sample verses.");
       }
-
       setCards(prev => [...prev, ...newCards]);
     } finally {
       setLoading(false);
       busy.current = false;
     }
-  }, [fetchText, pickRandomRef]);
+  }, [fetchRandomPsalmVerse]);
 
-  // Reset on settings change
   useEffect(() => {
     setCards([]);
     setError(null);
     busy.current = false;
     const t = setTimeout(() => loadMoreRef.current(), 80);
     return () => clearTimeout(t);
-  }, [selectedBook, resetKey]);
+  }, [resetKey]);
 
-  // Keep a stable ref to loadMore so the observer isn't torn down on every state change
   const loadMoreRef = useRef(loadMore);
   useEffect(() => { loadMoreRef.current = loadMore; }, [loadMore]);
 
-  // Infinite scroll observer — created once, reads loadMore from ref
   useEffect(() => {
     obsRef.current?.disconnect();
     obsRef.current = new IntersectionObserver(([e]) => {
@@ -333,98 +252,22 @@ export default function SeferScroll() {
       <div style={s.header}>
         <div style={s.headerInner}>
           <div style={{ ...s.logo, cursor: "pointer" }} onClick={() => {
-            setSelectedBook("");
             setCards([]);
-            setShowSettings(false);
             setShowAbout(false);
             setError(null);
             setResetKey(k => k + 1);
             window.scrollTo({ top: 0, behavior: "smooth" });
           }}>
             <span style={{ fontSize: 24 }}>🌀</span>
-            <span style={s.logoText}>SeferScroll</span>
+            <div style={s.logoText}>SeferScroll</div>
           </div>
-          <button
-            onClick={() => setShowSettings(v => !v)}
-            style={s.settingsBtn(showSettings)}
-          >
-            ⚙ Settings
+          <button onClick={() => setShowAbout(v => !v)} style={s.aboutBtn(showAbout)}>
+            About
           </button>
         </div>
-
-        {showSettings && (
-          <div style={s.panel}>
-            {/* Book selector */}
-            <div>
-              <div style={s.label}>Book</div>
-              <select value={selectedBook} onChange={e => setSelectedBook(e.target.value)} style={s.select}>
-                <option value="">— All of Tanakh —</option>
-                {BOOK_MENU.map(group => (
-                  <optgroup key={group.cat} label={group.cat}>
-                    {group.books.map(b => (
-                      <option key={b.en} value={b.en}>{b.en}{b.tr !== b.en ? ` (${b.tr})` : ""} — {b.he}</option>
-                    ))}
-                  </optgroup>
-                ))}
-              </select>
-            </div>
-
-            {/* Dark/Light + Mobile/Desktop toggles */}
-            <div>
-              <div style={s.label}>Appearance</div>
-              <div style={{ display: "flex", gap: 8 }}>
-                <button
-                  onClick={() => setTheme(t => t === "dark" ? "light" : "dark")}
-                  style={{
-                    display: "flex", alignItems: "center", gap: 8,
-                    background: "var(--bg-secondary)",
-                    border: "1px solid var(--border-medium)",
-                    borderRadius: "var(--radius-md)",
-                    padding: "7px 14px",
-                    cursor: "pointer", fontSize: 13,
-                    color: "var(--text-secondary)",
-                    transition: "background 0.15s",
-                  }}
-                >
-                  <span style={{ fontSize: 16 }}>{theme === "dark" ? "🌙" : "☀️"}</span>
-                  {theme === "dark" ? "Dark" : "Light"}
-                </button>
-                <button
-                  onClick={() => setViewMode(v => v === "desktop" ? "mobile" : "desktop")}
-                  style={{
-                    display: "flex", alignItems: "center", gap: 8,
-                    background: "var(--bg-secondary)",
-                    border: "1px solid var(--border-medium)",
-                    borderRadius: "var(--radius-md)",
-                    padding: "7px 14px",
-                    cursor: "pointer", fontSize: 13,
-                    color: "var(--text-secondary)",
-                    transition: "background 0.15s",
-                  }}
-                >
-                  <span style={{ fontSize: 16 }}>{viewMode === "mobile" ? "📱" : "🖥️"}</span>
-                  {viewMode === "mobile" ? "Mobile" : "Desktop"}
-                </button>
-              </div>
-            </div>
-
-            {/* About link */}
-            <div style={{ textAlign: "center", paddingTop: 4 }}>
-              <button
-                onClick={() => { setShowAbout(a => !a); setShowSettings(false); }}
-                style={{
-                  background: "none", border: "none", cursor: "pointer",
-                  fontSize: 12, color: "var(--text-tertiary)",
-                  padding: 0,
-                }}>
-                About SeferScroll
-              </button>
-            </div>
-          </div>
-        )}
       </div>
 
-      {/* ===== ABOUT CARD ===== */}
+      {/* ===== ABOUT ===== */}
       {showAbout && (
         <div style={{
           maxWidth: 620, margin: viewMode === "mobile" ? "0 auto" : "14px auto",
@@ -442,13 +285,10 @@ export default function SeferScroll() {
           }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
               <div style={{ fontSize: 17, fontWeight: 600, color: "var(--text-primary)" }}>About SeferScroll</div>
-              <button onClick={() => setShowAbout(false)} style={{
-                background: "none", border: "none", cursor: "pointer",
-                fontSize: 18, color: "var(--text-tertiary)", padding: "2px 6px",
-              }}>✕</button>
+              <button onClick={() => setShowAbout(false)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 18, color: "var(--text-tertiary)", padding: "2px 6px" }}>✕</button>
             </div>
             <div style={{ fontSize: 15, lineHeight: 1.8, color: "var(--text-primary)" }}>
-              SeferScroll is an infinite-scroll browser for Jewish texts, powered by the{" "}
+              SeferScroll is a random infinite-scroll browser for Tehillim/Psalms, powered by the{" "}
               <a href="https://developers.sefaria.org/" target="_blank" rel="noopener noreferrer">Sefaria API</a>.
               {" "}Learn more at{" "}
               <a href="https://github.com/jsandburg/seferscroll" target="_blank" rel="noopener noreferrer">GitHub</a>.
@@ -457,110 +297,70 @@ export default function SeferScroll() {
         </div>
       )}
 
-      {/* ===== CARD FEED ===== (hidden when About is shown in mobile) */}
+      {/* ===== CARD FEED ===== */}
       {!(showAbout && viewMode === "mobile") && (
         <div
-          className={`snap-feed${viewMode === "desktop" ? " view-desktop" : ""}${viewMode === "mobile" ? " view-mobile" : ""}`}
+          className={`snap-feed view-${viewMode}`}
           style={s.feed}
         >
-          {error && (
-            <div style={s.infoBox}>{error}</div>
-          )}
+          {error && <div style={s.infoBox}>{error}</div>}
 
-          {cards.map((card, idx) => {
-            const cc = catColor(card.categories);
-            const display = card.text || "";
+          {cards.map((card, idx) => (
+            <div key={card.id} className="snap-card" style={s.card((idx % 3) * 0.08)}>
+              <div style={{ height: 3, background: PSALMS_COLOR, opacity: 0.85 }} />
+              <div style={s.cardBody}>
 
-            return (
-              <div key={card.id} className="snap-card" style={s.card((idx % 3) * 0.08)}>
-                {/* Color strip */}
-                <div style={{ height: 3, background: cc, opacity: 0.85 }} />
-                <div style={s.cardBody}>
-
-                  {/* Card header */}
-                  {viewMode === "mobile" ? (
-                    <div style={{ marginBottom: 14 }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                        <div>
-                          <div style={{ ...s.catPill(cc), width: "fit-content" }}>{card.categories?.[0] || "Text"}</div>
-                          <a href={card.sefariaUrl} target="_blank" rel="noopener noreferrer"
-                            style={{ ...s.ref, textDecoration: "none", color: "var(--text-primary)", display: "block", marginTop: 6 }}>
-                            {card.ref}
-                          </a>
-                          {card.heRef && card.heRef !== card.ref && (
-                            <div style={s.heRef}>{card.heRef}</div>
-                          )}
-                        </div>
-                        <button
-                          onClick={() => {
-                            const text = `${card.ref}\n\n${trunc(display, 200)}\n\n${card.sefariaUrl}`;
-                            if (navigator.share) {
-                              navigator.share({ title: card.ref, text, url: card.sefariaUrl });
-                            } else {
-                              navigator.clipboard?.writeText(text);
-                              setCopiedId(card.id);
-                              setTimeout(() => setCopiedId(null), 1500);
-                            }
-                          }}
-                          style={s.shareBtn}
-                        >
+                {viewMode === "mobile" ? (
+                  <div>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                      <div>
+                        <a href={card.sefariaUrl} target="_blank" rel="noopener noreferrer"
+                          style={{ ...s.ref, textDecoration: "none", color: "var(--text-primary)", display: "block" }}>
+                          {card.ref}
+                        </a>
+                        {card.heRef && <div style={s.heRef}>{card.heRef}</div>}
+                      </div>
+                      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                        <a href={card.sefariaUrl} target="_blank" rel="noopener noreferrer" style={{ ...s.shareBtn, textDecoration: "none", textAlign: "center", display: "block" }}>
+                          Read more
+                        </a>
+                        <button onClick={() => shareVerse(card, setCopiedId)} style={s.shareBtn}>
                           {copiedId === card.id ? "Copied!" : "Share"}
                         </button>
                       </div>
                     </div>
-                  ) : (
+                    <div className="card-text" style={s.textBody}>{card.text}</div>
+                  </div>
+                ) : (
+                  <div>
                     <div style={s.cardHeader}>
                       <div>
                         <div style={s.ref}>{card.ref}</div>
-                        {card.heRef && card.heRef !== card.ref && (
-                          <div style={s.heRef}>{card.heRef}</div>
-                        )}
+                        {card.heRef && <div style={s.heRef}>{card.heRef}</div>}
                       </div>
-                      <div style={s.catPill(cc)}>{card.categories?.[0] || "Text"}</div>
                     </div>
-                  )}
-
-                  {/* Text body */}
-                  <div className="card-text" style={s.textBody}>
-                    {trunc(display || "Text not available.", 900)}
-                  </div>
-
-                  {/* Card footer — desktop only */}
-                  {viewMode === "desktop" && (
+                    <div className="card-text" style={s.textBody}>{card.text}</div>
                     <div style={s.footer}>
                       <a href={card.sefariaUrl} target="_blank" rel="noopener noreferrer" style={s.sefariaLink}>
-                        Read with original Hebrew on Sefaria ↗
+                        Read on Sefaria ↗
                       </a>
-                      <button
-                        onClick={() => {
-                          const text = `${card.ref}\n\n${trunc(display, 200)}\n\n${card.sefariaUrl}`;
-                          if (navigator.share) {
-                            navigator.share({ title: card.ref, text, url: card.sefariaUrl });
-                          } else {
-                            navigator.clipboard?.writeText(text);
-                            setCopiedId(card.id);
-                            setTimeout(() => setCopiedId(null), 1500);
-                          }
-                        }}
-                        style={s.shareBtn}
-                      >
+                      <button onClick={() => shareVerse(card, setCopiedId)} style={s.shareBtn}>
                         {copiedId === card.id ? "Copied!" : "Share"}
                       </button>
                     </div>
-                  )}
-                </div>
+                  </div>
+                )}
               </div>
-            );
-          })}
+            </div>
+          ))}
 
           {loading && (
             <div style={s.loading}>
               <div style={s.spinner} />
-              Loading texts…
+              Loading verses…
             </div>
           )}
 
-          {/* Scroll sentinel */}
           <div ref={sentRef} style={{ height: 1 }} />
         </div>
       )}
