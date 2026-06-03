@@ -31,17 +31,6 @@ function cleanVerse(t) {
   return t.replace(/[֐-׿יִ-פֿ]+/g, "").replace(/\s{2,}/g, " ").trim();
 }
 
-function shareVerse(card, setCopiedId) {
-  const text = `${card.ref}\n\n${card.text}\n\n${card.sefariaUrl}`;
-  if (navigator.share) {
-    navigator.share({ title: card.ref, text, url: card.sefariaUrl }).catch(() => {});
-  } else {
-    navigator.clipboard?.writeText(text).then(() => {
-      setCopiedId(card.id);
-      setTimeout(() => setCopiedId(null), 1500);
-    }).catch(() => {});
-  }
-}
 
 const s = {
   page: { minHeight: "100vh", fontFamily: "var(--font-body)", display: "flex", flexDirection: "column" },
@@ -86,15 +75,14 @@ const s = {
     marginTop: 14,
   },
   footer: {
-    display: "flex", justifyContent: "space-between", alignItems: "center",
     marginTop: 16, paddingTop: 14,
     borderTop: "1px solid var(--border-light)",
   },
-  sefariaLink: { fontSize: 12, color: "var(--text-info)", textDecoration: "none", display: "flex", alignItems: "center", gap: 4 },
-  shareBtn: {
+  readMoreBtn: {
     background: "transparent", border: "1px solid var(--border-medium)",
     borderRadius: "var(--radius-md)", padding: "6px 12px",
     cursor: "pointer", fontSize: 12, color: "var(--text-secondary)",
+    textDecoration: "none", display: "inline-block",
     transition: "background 0.15s",
   },
   spinner: {
@@ -127,7 +115,6 @@ export default function SeferScroll() {
   });
   const [showAbout, setShowAbout] = useState(false);
   const [resetKey, setResetKey] = useState(0);
-  const [copiedId, setCopiedId] = useState(null);
   const busy = useRef(false);
   const feedRef = useRef(null);
   const sentRef = useRef(null);
@@ -302,14 +289,9 @@ export default function SeferScroll() {
                           </a>
                           {card.heRef && <div style={s.heRef}>{card.heRef}</div>}
                         </div>
-                        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                          <a href={card.sefariaUrl} target="_blank" rel="noopener noreferrer" style={{ ...s.shareBtn, textDecoration: "none", textAlign: "center", display: "block" }}>
-                            Read more
-                          </a>
-                          <button onClick={() => shareVerse(card, setCopiedId)} style={s.shareBtn}>
-                            {copiedId === card.id ? "Copied!" : "Share"}
-                          </button>
-                        </div>
+                        <a href={card.sefariaUrl} target="_blank" rel="noopener noreferrer" style={s.readMoreBtn}>
+                          Read more
+                        </a>
                       </div>
                       <div className="card-text" style={s.textBody}>{card.text}</div>
                     </div>
@@ -323,12 +305,9 @@ export default function SeferScroll() {
                       </div>
                       <div className="card-text" style={s.textBody}>{card.text}</div>
                       <div style={s.footer}>
-                        <a href={card.sefariaUrl} target="_blank" rel="noopener noreferrer" style={{ ...s.shareBtn, textDecoration: "none", display: "inline-block" }}>
+                        <a href={card.sefariaUrl} target="_blank" rel="noopener noreferrer" style={s.readMoreBtn}>
                           Read more on Sefaria
                         </a>
-                        <button onClick={() => shareVerse(card, setCopiedId)} style={s.shareBtn}>
-                          {copiedId === card.id ? "Copied!" : "Share"}
-                        </button>
                       </div>
                     </div>
                   )}
