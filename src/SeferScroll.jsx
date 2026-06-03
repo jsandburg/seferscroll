@@ -198,7 +198,7 @@ export default function SeferScroll() {
         }
       }
       if (newCards.length === 0) {
-        setError("Couldn't reach Sefaria. Please try again later.");
+        setError("Experienced an error connecting to Sefaria. Please try again later.");
       } else {
         setCards(prev => [...prev, ...newCards]);
       }
