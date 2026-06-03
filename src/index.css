@@ -13,16 +13,10 @@ html, body { overflow: hidden; overscroll-behavior-y: contain; }
   --bg-primary: #ffffff;
   --bg-secondary: #f5f4f0;
   --bg-tertiary: #eae8e1;
-  --bg-info: #e6f1fb;
-  --bg-warning: #faeeda;
-  --bg-success: #eaf3de;
-
   --text-primary: #1a1a1a;
   --text-secondary: #5a5a57;
   --text-tertiary: #8a8a85;
   --text-info: #185fa5;
-  --text-warning: #854f0b;
-  --text-success: #3b6d11;
 
   --border-light: rgba(0, 0, 0, 0.08);
   --border-medium: rgba(0, 0, 0, 0.15);
@@ -31,7 +25,6 @@ html, body { overflow: hidden; overscroll-behavior-y: contain; }
   --radius-lg: 12px;
 
   --shadow-card: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
-  --shadow-hover: 0 4px 12px rgba(0,0,0,0.08);
 }
 
 /* ===== DARK MODE ===== */
@@ -41,22 +34,15 @@ html, body { overflow: hidden; overscroll-behavior-y: contain; }
     --bg-primary: #1e1e1e;
     --bg-secondary: #2a2a2a;
     --bg-tertiary: #141414;
-    --bg-info: #0c2a4a;
-    --bg-warning: #3a2a0a;
-    --bg-success: #1a2e0a;
-
     --text-primary: #e8e6e0;
     --text-secondary: #a8a6a0;
     --text-tertiary: #6e6e68;
     --text-info: #85b7eb;
-    --text-warning: #fac775;
-    --text-success: #97c459;
 
     --border-light: rgba(255, 255, 255, 0.06);
     --border-medium: rgba(255, 255, 255, 0.12);
 
     --shadow-card: 0 1px 3px rgba(0,0,0,0.3);
-    --shadow-hover: 0 4px 12px rgba(0,0,0,0.4);
   }
 }
 
@@ -65,22 +51,16 @@ html, body { overflow: hidden; overscroll-behavior-y: contain; }
   --bg-primary: #1e1e1e;
   --bg-secondary: #2a2a2a;
   --bg-tertiary: #141414;
-  --bg-info: #0c2a4a;
-  --bg-warning: #3a2a0a;
-  --bg-success: #1a2e0a;
 
   --text-primary: #e8e6e0;
   --text-secondary: #a8a6a0;
   --text-tertiary: #6e6e68;
   --text-info: #85b7eb;
-  --text-warning: #fac775;
-  --text-success: #97c459;
 
   --border-light: rgba(255, 255, 255, 0.06);
   --border-medium: rgba(255, 255, 255, 0.12);
 
   --shadow-card: 0 1px 3px rgba(0,0,0,0.3);
-  --shadow-hover: 0 4px 12px rgba(0,0,0,0.4);
 }
 
 /* ===== BASE ===== */
@@ -121,10 +101,6 @@ body {
 }
 
 /* ===== UTILITY ===== */
-select {
-  appearance: auto;
-}
-
 a {
   color: var(--text-info);
   text-decoration: none;
@@ -133,43 +109,8 @@ a:hover {
   text-decoration: underline;
 }
 
-/* ===== MOBILE SNAP SCROLL ===== */
-@media (max-width: 1024px) {
-  .snap-feed:not(.view-desktop) {
-    scroll-snap-type: y mandatory;
-    overflow-y: scroll;
-    flex: 1;
-    min-height: 0;
-    padding: 0 !important;
-    gap: 0 !important;
-    max-width: 100% !important;
-  }
-
-  .snap-feed:not(.view-desktop) .snap-card {
-    scroll-snap-align: start;
-    min-height: 100%;
-    display: flex;
-    flex-direction: column;
-    border-radius: 0 !important;
-    border-left: none !important;
-    border-right: none !important;
-    border-top: none !important;
-    margin: 0;
-  }
-
-  .snap-feed:not(.view-desktop) .snap-card > div:last-child {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .snap-feed:not(.view-desktop) .snap-card .card-text {
-    flex: 1;
-    overflow-y: auto;
-  }
-}
-
-/* Force mobile snap view on any screen size */
+/* ===== SNAP SCROLL ===== */
+/* Mobile: full-screen cards */
 .snap-feed.view-mobile {
   scroll-snap-type: y mandatory;
   overflow-y: scroll;
