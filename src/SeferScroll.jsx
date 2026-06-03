@@ -346,8 +346,8 @@ export default function SeferScroll() {
                     </div>
                     <div className="card-text" style={s.textBody}>{card.text}</div>
                     <div style={s.footer}>
-                      <a href={card.sefariaUrl} target="_blank" rel="noopener noreferrer" style={s.sefariaLink}>
-                        Read on Sefaria ↗
+                      <a href={card.sefariaUrl} target="_blank" rel="noopener noreferrer" style={{ ...s.shareBtn, textDecoration: "none", display: "inline-block" }}>
+                        Read more on Sefaria
                       </a>
                       <button onClick={() => shareVerse(card, setCopiedId)} style={s.shareBtn}>
                         {copiedId === card.id ? "Copied!" : "Share"}
