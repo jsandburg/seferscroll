@@ -14,7 +14,7 @@ SeferScroll presents individual verses from Tehillim (Psalms) in random order. T
 
 ## Features
 
-- Full-screen swipeable cards on mobile (768px and narrower), traditional card feed on desktop, auto-detected
+- Full-screen snap scroll on both mobile and desktop, one verse per screen
 - Follows system light/dark mode automatically
 - Footnotes and reference markers stripped for clean reading
 - Links to the verse on Sefaria for the full Hebrew and commentary
