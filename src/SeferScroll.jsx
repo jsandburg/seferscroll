@@ -146,6 +146,7 @@ export default function SeferScroll() {
   const [showAbout, setShowAbout] = useState(false);
   const [resetKey, setResetKey] = useState(0);
   const [copiedId, setCopiedId] = useState(null);
+  const [desktopIdx, setDesktopIdx] = useState(0);
   const busy = useRef(false);
   const feedRef = useRef(null);
 
@@ -229,11 +230,32 @@ export default function SeferScroll() {
 
   useEffect(() => {
     setCards([]);
+    setDesktopIdx(0);
     setError(null);
     busy.current = false;
     const t = setTimeout(() => loadMoreRef.current(), 80);
     return () => clearTimeout(t);
   }, [resetKey]);
+
+  const advanceDesktop = useCallback(() => {
+    setDesktopIdx(i => {
+      const next = i + 1;
+      if (next >= cards.length - 1) loadMoreRef.current();
+      return next;
+    });
+  }, [cards.length]);
+
+  useEffect(() => {
+    if (viewMode !== "desktop") return;
+    const handler = (e) => {
+      if (e.key === "ArrowDown" || e.key === "ArrowRight" || e.key === " ") {
+        e.preventDefault();
+        advanceDesktop();
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [viewMode, advanceDesktop]);
 
   const loadMoreRef = useRef(loadMore);
   useEffect(() => { loadMoreRef.current = loadMore; }, [loadMore]);
@@ -305,76 +327,92 @@ export default function SeferScroll() {
         </div>
       )}
 
-      {/* ===== CARD FEED ===== */}
-      {!(showAbout && viewMode === "mobile") && (
-        <div
-          ref={feedRef}
-          className={`snap-feed view-${viewMode}`}
-          style={s.feed}
-        >
+      {/* ===== MOBILE FEED ===== */}
+      {!(showAbout && viewMode === "mobile") && viewMode === "mobile" && (
+        <div ref={feedRef} className="snap-feed view-mobile" style={s.feed}>
           {error && <div style={s.infoBox}>{error}</div>}
-
-          {cards.map((card, idx) => {
-            const snapCard = (
-              <div className="snap-card" style={s.card((idx % 3) * 0.08)}>
+          {cards.map((card) => (
+            <React.Fragment key={card.id}>
+              <div className="snap-card" style={s.card(0)}>
                 <div style={{ height: 3, background: PSALMS_COLOR, opacity: 0.85 }} />
                 <div style={s.cardBody}>
-                  {viewMode === "mobile" ? (
-                    <div>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                        <div>
-                          <a href={card.sefariaUrl} target="_blank" rel="noopener noreferrer"
-                            style={{ ...s.ref, textDecoration: "none", color: "var(--text-primary)", display: "block" }}>
-                            {card.ref}
-                          </a>
-                          {card.heRef && <div style={s.heRef}>{card.heRef}</div>}
-                        </div>
-                        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                          <a href={card.sefariaUrl} target="_blank" rel="noopener noreferrer" style={{ ...s.shareBtn, textDecoration: "none", textAlign: "center", display: "block" }}>
-                            Read more
-                          </a>
-                          <button onClick={() => shareVerse(card, setCopiedId)} style={s.shareBtn}>
-                            {copiedId === card.id ? "Copied!" : "Share"}
-                          </button>
-                        </div>
+                  <div>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                      <div>
+                        <a href={card.sefariaUrl} target="_blank" rel="noopener noreferrer"
+                          style={{ ...s.ref, textDecoration: "none", color: "var(--text-primary)", display: "block" }}>
+                          {card.ref}
+                        </a>
+                        {card.heRef && <div style={s.heRef}>{card.heRef}</div>}
                       </div>
-                      <div className="card-text" style={s.textBody}>{card.text}</div>
-                    </div>
-                  ) : (
-                    <div>
-                      <div style={s.cardHeader}>
-                        <div>
-                          <div style={s.ref}>{card.ref}</div>
-                          {card.heRef && <div style={s.heRef}>{card.heRef}</div>}
-                        </div>
-                      </div>
-                      <div className="card-text" style={s.textBody}>{card.text}</div>
-                      <div style={s.footer}>
-                        <a href={card.sefariaUrl} target="_blank" rel="noopener noreferrer" style={{ ...s.shareBtn, textDecoration: "none", display: "inline-block" }}>
-                          Read more on Sefaria
+                      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                        <a href={card.sefariaUrl} target="_blank" rel="noopener noreferrer" style={{ ...s.shareBtn, textDecoration: "none", textAlign: "center", display: "block" }}>
+                          Read more
                         </a>
                         <button onClick={() => shareVerse(card, setCopiedId)} style={s.shareBtn}>
                           {copiedId === card.id ? "Copied!" : "Share"}
                         </button>
                       </div>
                     </div>
-                  )}
+                    <div className="card-text" style={s.textBody}>{card.text}</div>
+                  </div>
                 </div>
               </div>
-            );
-            return viewMode === "desktop"
-              ? <div key={card.id} className="snap-slide">{snapCard}</div>
-              : <React.Fragment key={card.id}>{snapCard}</React.Fragment>;
-          })}
-
+            </React.Fragment>
+          ))}
           {loading && (
             <div style={s.loading}>
               <div style={s.spinner} />
               Loading verses…
             </div>
           )}
+        </div>
+      )}
 
-
+      {/* ===== DESKTOP SINGLE CARD ===== */}
+      {!showAbout && viewMode === "desktop" && (
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "20px 14px", gap: 16 }}>
+          {error && <div style={{ ...s.infoBox, maxWidth: 620, width: "100%" }}>{error}</div>}
+          {(() => {
+            const card = cards[desktopIdx];
+            if (!card) return loading ? (
+              <div style={s.loading}><div style={s.spinner} />Loading verses…</div>
+            ) : null;
+            return (
+              <div key={card.id} style={{ ...s.card(0), maxWidth: 620, width: "100%" }}>
+                <div style={{ height: 3, background: PSALMS_COLOR, opacity: 0.85 }} />
+                <div style={s.cardBody}>
+                  <div style={s.cardHeader}>
+                    <div>
+                      <div style={s.ref}>{card.ref}</div>
+                      {card.heRef && <div style={s.heRef}>{card.heRef}</div>}
+                    </div>
+                  </div>
+                  <div className="card-text" style={s.textBody}>{card.text}</div>
+                  <div style={s.footer}>
+                    <a href={card.sefariaUrl} target="_blank" rel="noopener noreferrer" style={{ ...s.shareBtn, textDecoration: "none", display: "inline-block" }}>
+                      Read more on Sefaria
+                    </a>
+                    <button onClick={() => shareVerse(card, setCopiedId)} style={s.shareBtn}>
+                      {copiedId === card.id ? "Copied!" : "Share"}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
+          <button
+            onClick={advanceDesktop}
+            disabled={loading && desktopIdx >= cards.length - 1}
+            style={{
+              background: "transparent", border: "1px solid var(--border-medium)",
+              borderRadius: "var(--radius-md)", padding: "8px 20px",
+              cursor: "pointer", fontSize: 13, color: "var(--text-secondary)",
+              transition: "background 0.15s",
+            }}
+          >
+            {loading && desktopIdx >= cards.length - 1 ? "Loading…" : "Next verse"}
+          </button>
         </div>
       )}
     </div>
