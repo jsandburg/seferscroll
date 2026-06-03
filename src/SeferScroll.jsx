@@ -251,7 +251,7 @@ export default function SeferScroll() {
   return (
     <div style={{
       ...s.page,
-      ...(viewMode === "mobile" ? { position: "fixed", inset: 0, overflow: "hidden" } : {}),
+      position: "fixed", inset: 0, overflow: "hidden",
     }}>
       {/* ===== HEADER ===== */}
       <div style={s.header}>
@@ -311,7 +311,8 @@ export default function SeferScroll() {
           {error && <div style={s.infoBox}>{error}</div>}
 
           {cards.map((card, idx) => (
-            <div key={card.id} className="snap-card" style={s.card((idx % 3) * 0.08)}>
+            <div key={card.id} className={viewMode === "desktop" ? "snap-slide" : undefined} style={viewMode === "mobile" ? { display: "contents" } : undefined}>
+            <div className="snap-card" style={s.card((idx % 3) * 0.08)}>
               <div style={{ height: 3, background: PSALMS_COLOR, opacity: 0.85 }} />
               <div style={s.cardBody}>
 
@@ -356,6 +357,7 @@ export default function SeferScroll() {
                   </div>
                 )}
               </div>
+            </div>
             </div>
           ))}
 

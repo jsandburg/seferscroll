@@ -197,3 +197,28 @@ a:hover {
   flex: 1;
   overflow-y: auto;
 }
+
+/* Desktop snap scroll — one card per screen, card stays natural size */
+.snap-feed.view-desktop {
+  scroll-snap-type: y mandatory;
+  overflow-y: scroll;
+  flex: 1;
+  min-height: 0;
+  padding: 0 !important;
+  max-width: 100% !important;
+}
+
+.snap-feed.view-desktop .snap-slide {
+  scroll-snap-align: start;
+  min-height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px 14px;
+  box-sizing: border-box;
+}
+
+.snap-feed.view-desktop .snap-slide .snap-card {
+  width: 100%;
+  max-width: 620px;
+}
