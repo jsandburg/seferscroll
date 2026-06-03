@@ -191,7 +191,7 @@ Whenever you want to update the site:
 → Make sure `npm run build` works locally first (it creates a `dist` folder).
 
 **Sefaria API not loading**
-→ The site will show sample verses as a fallback. The Sefaria API is free and doesn't require a key, but occasionally may be slow. The live site should work perfectly since there are no sandbox restrictions.
+→ The Sefaria API is free and doesn't require a key, but occasionally may be slow. The live site should work perfectly since there are no sandbox restrictions.
 
 **Want to change the name or URL?**
 → In Vercel dashboard, go to Settings → Domains to add a custom domain, or Settings → General to rename the project.

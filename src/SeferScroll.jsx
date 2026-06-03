@@ -2,24 +2,6 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 
 const API = "/sefaria-api";
 
-const SAMPLE_VERSES = [
-  {
-    ref: "Psalms 23:1", heRef: "תהילים כ״ג",
-    text: "The LORD is my shepherd; I shall not want.",
-    sefariaUrl: "https://www.sefaria.org/Psalms.23.1",
-  },
-  {
-    ref: "Psalms 27:1", heRef: "תהילים כ״ז",
-    text: "The LORD is my light and my salvation; whom shall I fear? The LORD is the stronghold of my life; of whom shall I be afraid?",
-    sefariaUrl: "https://www.sefaria.org/Psalms.27.1",
-  },
-  {
-    ref: "Psalms 121:1", heRef: "תהילים קכ״א",
-    text: "I will lift up mine eyes unto the mountains: from whence shall my help come?",
-    sefariaUrl: "https://www.sefaria.org/Psalms.121.1",
-  },
-];
-
 const PSALMS_COLOR = "#1D9E75";
 
 function stripHtml(h) {
@@ -216,13 +198,10 @@ export default function SeferScroll() {
         }
       }
       if (newCards.length === 0) {
-        const pool = [...SAMPLE_VERSES].sort(() => Math.random() - 0.5);
-        for (let i = 0; i < 3; i++) {
-          newCards.push({ ...pool[i % pool.length], id: Date.now() + Math.random() });
-        }
-        setError("Couldn't reach Sefaria — showing sample verses.");
+        setError("Couldn't reach Sefaria. Please try again later.");
+      } else {
+        setCards(prev => [...prev, ...newCards]);
       }
-      setCards(prev => [...prev, ...newCards]);
     } finally {
       setLoading(false);
       busy.current = false;

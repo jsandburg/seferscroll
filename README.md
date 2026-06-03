@@ -19,7 +19,7 @@ SeferScroll presents individual verses from Tehillim (Psalms) in random order. T
 - Footnotes and reference markers stripped for clean reading
 - Links to the verse on Sefaria for the full Hebrew and commentary
 - Share button with clipboard fallback
-- Sample verses shown when the API can't be reached
+- Error message shown if the API can't be reached
 - Verses fetched in parallel for faster load
 
 ## Tech Stack
