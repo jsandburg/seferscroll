@@ -1,5 +1,6 @@
 /* ===== RESET ===== */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { overflow: hidden; overscroll-behavior-y: contain; }
 
 /* ===== FONTS ===== */
 @import url('https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@400;500;700&family=Inter:wght@400;500;600&display=swap');
@@ -99,6 +100,10 @@ body {
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border-medium); border-radius: 3px; }
+
+/* Hide scrollbar on snap feed */
+.snap-feed::-webkit-scrollbar { display: none; }
+.snap-feed { scrollbar-width: none; -ms-overflow-style: none; }
 
 /* ===== ANIMATIONS ===== */
 @keyframes fadeSlideIn {
