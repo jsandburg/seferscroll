@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 
 const API = "/sefaria-api";
 
-const PSALMS_COLOR = "#1D9E75";
+const PSALMS_COLOR = "#0227df";
 
 function stripHtml(h) {
   if (!h) return "";
