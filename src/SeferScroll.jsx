@@ -411,7 +411,7 @@ export default function SeferScroll() {
               transition: "background 0.15s",
             }}
           >
-            {loading && desktopIdx >= cards.length - 1 ? "Loading…" : "Next verse"}
+            {loading && desktopIdx >= cards.length - 1 ? "Loading…" : "Refresh"}
           </button>
         </div>
       )}
