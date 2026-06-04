@@ -3,7 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "description": "An infinite-scroll browser for Jewish texts powered by the Sefaria API",
+  "description": "A random infinite-scroll browser for Tehillim/Psalms using Sefaria API",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
