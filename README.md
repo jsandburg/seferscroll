@@ -22,6 +22,23 @@ SeferScroll presents individual verses from Tehillim (Psalms) in random order. T
 - Error message shown if the API can't be reached
 - Verses fetched in parallel for faster load
 
+## Project Structure
+
+```
+seferscroll/
+├── src/
+│   ├── SeferScroll.jsx       # Main component
+│   ├── main.jsx              # Entry point
+│   └── index.css             # Styles
+├── index.html                # HTML shell
+├── package.json
+├── vite.config.js
+├── vercel.json
+├── DEPLOY_GUIDE.md
+├── README.md
+└── LICENSE
+```
+
 ## Tech Stack
 
 - React 18
